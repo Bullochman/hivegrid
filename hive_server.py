@@ -11,7 +11,7 @@ All changes are saved to hive_config.json and exported to
 hive_members_export.csv automatically.
 """
 
-import json, csv, sys, math, webbrowser
+import json, csv, sys, math, webbrowser, os
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from threading import Timer
@@ -20,7 +20,16 @@ DIR        = Path(__file__).parent
 CONFIG     = DIR / "hive_config.json"
 APP_HTML   = DIR / "hive_app.html"
 EXPORT_CSV = DIR / "hive_members_export.csv"
-PORT       = 8765
+PORT       = int(os.environ.get("PORT", 8765))
+IS_HOSTED  = os.environ.get("RAILWAY_ENVIRONMENT") is not None
+
+# Auto-create config from example if missing (first run on hosted server)
+if not CONFIG.exists():
+    example = DIR / "hive_config.example.json"
+    if example.exists():
+        import shutil
+        shutil.copy(example, CONFIG)
+        print(f"  [init] Created {CONFIG} from example")
 
 
 # ── Config helpers ─────────────────────────────────────────────────────────────
@@ -306,16 +315,19 @@ def run():
         print(f"[error] Missing {APP_HTML}  — run this from ~/claudecode/")
         sys.exit(1)
 
-    url = f"http://localhost:{PORT}"
-    print(f"\n  ◈  Last War Survival — Hive Grid Server")
+    host = "0.0.0.0" if IS_HOSTED else "localhost"
+    url  = f"http://localhost:{PORT}" if not IS_HOSTED else f"https://${{RAILWAY_STATIC_URL}}"
+
+    print(f"\n  ◈  Alliance Hive Grid — Web Server")
     print(f"  URL  : {url}")
     print(f"  JSON : {CONFIG}")
-    print(f"  CSV  : {EXPORT_CSV}  (auto-updated on every change)")
+    print(f"  Port : {PORT}  |  Hosted: {IS_HOSTED}")
     print(f"\n  Press Ctrl+C to stop.\n")
 
-    Timer(0.6, lambda: webbrowser.open(url)).start()
+    if not IS_HOSTED:
+        Timer(0.6, lambda: webbrowser.open(f"http://localhost:{PORT}")).start()
     try:
-        HTTPServer(("localhost", PORT), Handler).serve_forever()
+        HTTPServer((host, PORT), Handler).serve_forever()
     except KeyboardInterrupt:
         print("\n  Server stopped.")
 
