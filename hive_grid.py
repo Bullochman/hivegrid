@@ -14,7 +14,7 @@ USAGE
   python3 hive_grid.py move   NAME COL ROW    alias for assign
   python3 hive_grid.py swap   NAME1 NAME2     swap two members' positions
   python3 hive_grid.py unassign NAME          remove member from grid
-  python3 hive_grid.py auto                   auto-fill empty cells (rank → power)
+  python3 hive_grid.py auto [SORT]            auto-fill empty cells (SORT: rank,power / hq,power / power / rank,hq,power)
   python3 hive_grid.py import FILE            update member list from CSV
 
 NOTES
@@ -349,12 +349,16 @@ def cmd_unassign(cfg, name):
     print(f"  ✓  {name} removed from {pos}")
 
 # ── Auto-assign ────────────────────────────────────────────────────────────────
-def cmd_auto(cfg):
+def cmd_auto(cfg, sort_by="rank,power"):
     """
-    Two-pass placement:
-      Pass 1 — R5/R4 members fill closest empty cells (5% buff ring priority)
-      Pass 2 — Everyone else fills remaining cells by power descending
-               (so top hitters regardless of rank get the next-closest spots)
+    Auto-place unassigned members into empty cells closest to MG.
+
+    sort_by — comma-separated priority fields (rank, hq, power).
+      Examples:
+        "rank,power"      R4/R5 inner ring first, then everyone by power (default)
+        "rank,hq,power"   R4/R5 inner ring first, then HQ level, then power
+        "hq,power"        HQ level descending, then power
+        "power"           Strongest players closest, no rank distinction
     """
     g = cfg["grid"]
     assigned = set(cfg["assignments"].values())
@@ -364,12 +368,32 @@ def cmd_auto(cfg):
         print("[info] All members are already assigned.")
         return
 
-    # Split into priority tiers
-    r4r5  = sorted([n for n in unassigned if cfg["members"][n].get("rank") in ("R5","R4")],
-                   key=lambda n: -power_float(cfg["members"][n].get("power")))
-    others = sorted([n for n in unassigned if n not in r4r5],
-                    key=lambda n: -power_float(cfg["members"][n].get("power")))
-    members_queue = r4r5 + others
+    fields   = [s.strip() for s in sort_by.split(",") if s.strip()]
+    RANK_ORD = {"R5": 0, "R4": 1, "R3": 2, "R2": 3, "R1": 4}
+
+    def make_key(name):
+        m = cfg["members"][name]
+        key = []
+        for f in fields:
+            if f == "rank":
+                key.append(RANK_ORD.get(m.get("rank", ""), 5))
+            elif f == "hq":
+                try: hq = int(m.get("hq") or 0)
+                except: hq = 0
+                key.append(-hq)
+            elif f == "power":
+                key.append(-power_float(m.get("power")))
+        return key
+
+    # Two-pass only when rank is primary: R4/R5 fill inner rings first
+    if fields and fields[0] == "rank":
+        r4r5   = sorted([n for n in unassigned if cfg["members"][n].get("rank") in ("R5","R4")],
+                        key=make_key)
+        others = sorted([n for n in unassigned if n not in set(r4r5)],
+                        key=make_key)
+        members_queue = r4r5 + others
+    else:
+        members_queue = sorted(unassigned, key=make_key)
 
     # Empty cells sorted by (ring, clockwise angle from top)
     empty_cells = []
@@ -637,7 +661,8 @@ def main():
         save(cfg)
 
     elif cmd in ("auto", "auto-assign"):
-        cmd_auto(cfg)
+        sort_by = args[1] if len(args) > 1 else "rank,power"
+        cmd_auto(cfg, sort_by)
         save(cfg)
 
     elif cmd == "import":

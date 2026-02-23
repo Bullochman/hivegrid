@@ -270,7 +270,7 @@ class Handler(BaseHTTPRequestHandler):
             save_cfg(cfg)
             self._send_json({"ok": True, "added": added, "updated": updated, "config": cfg})
 
-        # ── /api/auto — two-pass auto-assign (R4/R5 inner rings, then power) ──
+        # ── /api/auto — auto-assign with configurable sort priority ──────────
         elif self.path == "/api/auto":
             g = cfg["grid"]
             mc, mr = g["mg_col"], g["mg_row"]
@@ -280,14 +280,36 @@ class Handler(BaseHTTPRequestHandler):
                 try: return float(str(p or 0).replace("M","").strip())
                 except: return 0.0
 
-            assigned = set(cfg["assignments"].values())
+            sort_by = (data.get("sort_by") or "rank,power").strip()
+            fields  = [s.strip() for s in sort_by.split(",") if s.strip()]
+            RANK_ORD = {"R5": 0, "R4": 1, "R3": 2, "R2": 3, "R1": 4}
+
+            def make_key(name):
+                m = cfg["members"][name]
+                key = []
+                for f in fields:
+                    if f == "rank":
+                        key.append(RANK_ORD.get(m.get("rank", ""), 5))
+                    elif f == "hq":
+                        try: hq = int(m.get("hq") or 0)
+                        except: hq = 0
+                        key.append(-hq)
+                    elif f == "power":
+                        key.append(-ppow(m.get("power")))
+                return key
+
+            assigned   = set(cfg["assignments"].values())
             unassigned = [n for n in cfg["members"] if n not in assigned]
 
-            r4r5   = sorted([n for n in unassigned if cfg["members"][n].get("rank") in ("R5","R4")],
-                            key=lambda n: -ppow(cfg["members"][n].get("power")))
-            others = sorted([n for n in unassigned if n not in r4r5],
-                            key=lambda n: -ppow(cfg["members"][n].get("power")))
-            queue = r4r5 + others
+            # Two-pass only when rank is the primary field: R4/R5 fill inner rings first
+            if fields and fields[0] == "rank":
+                r4r5   = sorted([n for n in unassigned if cfg["members"][n].get("rank") in ("R5","R4")],
+                                key=make_key)
+                others = sorted([n for n in unassigned if n not in set(r4r5)],
+                                key=make_key)
+                queue = r4r5 + others
+            else:
+                queue = sorted(unassigned, key=make_key)
 
             empty = []
             for c in range(g["cols"]):

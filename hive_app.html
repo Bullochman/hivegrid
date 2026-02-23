@@ -170,7 +170,15 @@ select.inline-edit{width:auto;min-width:50px}
   </div>
   <div class="meta" id="meta">Connecting to server…</div>
   <div class="toolbar">
-    <button class="btn-auto"   id="btn-auto-assign"  title="R4/R5 fill inner rings first, then all others by power descending">⚡ Auto-Assign</button>
+    <button class="btn-auto"   id="btn-auto-assign"  title="Auto-assign members to grid cells">⚡ Auto-Assign</button>
+    <select id="auto-sort-mode" title="Priority order for auto-assign" style="background:#0a0a14;border:1px solid #33aa33;color:#88ff88;font-family:'Courier New',monospace;font-size:11px;border-radius:4px;padding:4px 8px;cursor:pointer">
+      <option value="rank,power">Rank → Power</option>
+      <option value="rank,hq,power">Rank → HQ → Power</option>
+      <option value="hq,power">HQ Level → Power</option>
+      <option value="power">Power only</option>
+      <option value="hq">HQ Level only</option>
+      <option value="rank,hq">Rank → HQ Level</option>
+    </select>
     <button class="btn-upload" id="btn-csv-upload"   title="Upload a CSV to update member data">📂 Upload CSV</button>
     <button class="btn-mg"     id="btn-set-mg"       title="Change the MG anchor coordinates">📍 Set MG Coords</button>
     <button class="btn-clear"  id="btn-clear-grid"   title="Unassign everyone — keep member list">🗑 Clear Grid</button>
@@ -768,11 +776,20 @@ function renderAll(){
 document.getElementById('btn-auto-assign').onclick = async () => {
   const unplaced = Object.keys(cfg.members).filter(n => !Object.values(cfg.assignments).includes(n));
   if(unplaced.length === 0){ toast('Everyone is already placed!'); return; }
-  const d = await api('/api/auto', {});
+  const sortBy = document.getElementById('auto-sort-mode').value;
+  const d = await api('/api/auto', {sort_by: sortBy});
   if(d.ok){
     cfg = d.config;
     renderAll();
-    toast(`⚡ Placed ${d.placed} member${d.placed===1?'':'s'} — R4/R5 inner rings, then top power`);
+    const sortLabels = {
+      'rank,power':     'Rank → Power',
+      'rank,hq,power':  'Rank → HQ → Power',
+      'hq,power':       'HQ → Power',
+      'power':          'Power only',
+      'hq':             'HQ Level only',
+      'rank,hq':        'Rank → HQ',
+    };
+    toast(`⚡ Placed ${d.placed} member${d.placed===1?'':'s'} — ${sortLabels[sortBy]||sortBy}`);
   } else {
     toast(d.error || 'Auto-assign failed', true);
   }
