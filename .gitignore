@@ -1,0 +1,14 @@
+# Personal alliance data — never commit these
+hive_config.json
+hive_members_export.csv
+
+# Generated files
+hive_grid.html
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+
+# Local env / secrets
+.env
+*.key
