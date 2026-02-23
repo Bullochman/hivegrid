@@ -1,40 +1,8 @@
 {
-  "alliance_name": "Your Alliance Name",
+  "alliance_name": "",
   "unlocked": false,
-  "mg": {
-    "x": 486,
-    "y": 432
-  },
-  "grid": {
-    "cols": 10,
-    "rows": 10,
-    "mg_col": 4,
-    "mg_row": 4,
-    "step": 3
-  },
-  "members": {
-    "PlayerOne": {
-      "rank": "R5",
-      "hq": 28,
-      "power": "85.0M",
-      "notes": ""
-    },
-    "PlayerTwo": {
-      "rank": "R4",
-      "hq": 27,
-      "power": "60.0M",
-      "notes": ""
-    },
-    "PlayerThree": {
-      "rank": "R3",
-      "hq": 25,
-      "power": "45.0M",
-      "notes": ""
-    }
-  },
-  "assignments": {
-    "5,3": "PlayerOne",
-    "4,3": "PlayerTwo",
-    "3,3": "PlayerThree"
-  }
+  "mg": {"x": 486, "y": 432},
+  "grid": {"cols": 10, "rows": 10, "mg_col": 4, "mg_row": 4, "step": 3},
+  "members": {},
+  "assignments": {}
 }
