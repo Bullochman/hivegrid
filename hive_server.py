@@ -20,6 +20,7 @@ DIR        = Path(__file__).parent
 CONFIG     = DIR / "hive_config.json"
 APP_HTML   = DIR / "hive_app.html"
 EXPORT_CSV = DIR / "hive_members_export.csv"
+FEEDBACK   = DIR / "feedback.json"
 PORT       = int(os.environ.get("PORT", 8765))
 IS_HOSTED  = os.environ.get("RAILWAY_ENVIRONMENT") is not None
 
@@ -96,6 +97,16 @@ class Handler(BaseHTTPRequestHandler):
 
         elif self.path == "/api/config":
             self._send_json(load_cfg())
+
+        elif self.path == "/api/get-feedback":
+            data = []
+            if FEEDBACK.exists():
+                try:
+                    with open(FEEDBACK) as f:
+                        data = json.load(f)
+                except Exception:
+                    data = []
+            self._send_json({"ok": True, "count": len(data), "feedback": data})
 
         else:
             self.send_response(404); self.end_headers()
@@ -220,6 +231,25 @@ class Handler(BaseHTTPRequestHandler):
             cfg["mg"]["y"] = new_y
             save_cfg(cfg)
             self._send_json({"ok": True, "config": cfg})
+
+        # ── /api/feedback  {name, votes: [...], comment} ─────────────────────
+        elif self.path == "/api/feedback":
+            import time
+            name    = (data.get("name")    or "Anonymous").strip()[:60]
+            votes   = [str(v)[:40] for v in (data.get("votes") or []) if isinstance(v, str)]
+            comment = (data.get("comment") or "").strip()[:500]
+            entry   = {"ts": int(time.time()), "name": name, "votes": votes, "comment": comment}
+            existing = []
+            if FEEDBACK.exists():
+                try:
+                    with open(FEEDBACK) as f:
+                        existing = json.load(f)
+                except Exception:
+                    existing = []
+            existing.append(entry)
+            with open(FEEDBACK, "w") as f:
+                json.dump(existing, f, indent=2)
+            self._send_json({"ok": True})
 
         # ── /api/clear  — wipe all assignments (keep members) ────────────────
         elif self.path == "/api/clear":

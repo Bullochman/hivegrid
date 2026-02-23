@@ -149,6 +149,19 @@ select.inline-edit{width:auto;min-width:50px}
 .csv-format-box{background:#08080f;border:1px solid #1a1a2e;border-radius:6px;padding:12px 16px;font-size:10px;color:#55557a;line-height:1.8;margin-top:10px}
 .csv-format-box code{color:#00bfff;background:#001520;padding:1px 4px;border-radius:3px}
 
+/* ── Feedback section ───────────────────── */
+.feedback-section{margin-top:36px;border-top:1px solid #151525;padding-top:20px}
+.feedback-section h2{color:#9999cc;font-size:13px;letter-spacing:.5px;margin-bottom:6px}
+.feedback-sub{color:#44445a;font-size:11px;margin-bottom:16px}
+.feedback-form{background:#080810;border:1px solid #1a1a2e;border-radius:8px;padding:18px 22px;max-width:640px}
+.fb-checks{display:flex;flex-direction:column;gap:7px;margin-top:6px}
+.fb-check{display:flex;align-items:flex-start;gap:8px;color:#6666aa;font-size:11px;cursor:pointer;line-height:1.4}
+.fb-check input[type=checkbox]{margin-top:1px;accent-color:#6666cc;cursor:pointer;flex-shrink:0}
+.fb-check:hover{color:#9999cc}
+#fb-name,#fb-comment{width:100%;background:#080816;border:1px solid #353560;color:#dde;padding:7px 9px;border-radius:5px;font-family:'Courier New',monospace;font-size:12px}
+#fb-name:focus,#fb-comment:focus{outline:none;border-color:#6666cc;background:#0c0c20}
+#fb-comment{resize:vertical;min-height:60px}
+
 /* ── Toast ──────────────────────────────── */
 #toast{
   position:fixed;bottom:22px;right:22px;padding:9px 16px;border-radius:6px;
@@ -325,6 +338,40 @@ select.inline-edit{width:auto;min-width:50px}
     <a href="#" id="btn-dl-template" style="display:block;margin-top:10px;text-align:center;background:#001520;border:1px solid #003344;color:#00bfff;border-radius:4px;padding:5px 0;font-size:11px;text-decoration:none">⬇ Download blank CSV template</a>
   </div>
 
+</div>
+
+<!-- ── Feedback / Feature Requests ─────────────────────────────────── -->
+<div class="feedback-section">
+  <h2>💡 SUGGESTIONS &amp; FEATURE REQUESTS</h2>
+  <p class="feedback-sub">Help shape the next version — vote for features you'd use, or leave your own idea below.</p>
+  <div class="feedback-form">
+    <div class="field">
+      <label>YOUR NAME OR ALLIANCE TAG (optional)</label>
+      <input id="fb-name" type="text" maxlength="40" placeholder="e.g. KittyKitty [R10t]" autocomplete="off">
+    </div>
+    <div class="field" style="margin-top:13px">
+      <label>VOTE FOR FEATURES (check all that apply)</label>
+      <div class="fb-checks">
+        <label class="fb-check"><input type="checkbox" value="share_link"> Read-only shareable link so the whole alliance can view the grid live</label>
+        <label class="fb-check"><input type="checkbox" value="leader_dash"> Leader dashboard — upload once, every member sees it without editing</label>
+        <label class="fb-check"><input type="checkbox" value="formations"> Formation presets (circle, diamond, corner, zombie surge / KvK event layouts)</label>
+        <label class="fb-check"><input type="checkbox" value="swap_suggest"> Smart swap suggestions — flag weak placements and recommend improvements</label>
+        <label class="fb-check"><input type="checkbox" value="mobile"> Mobile-friendly view optimized for phones</label>
+        <label class="fb-check"><input type="checkbox" value="multi_hive"> Multi-hive / sub-alliance support (R1/R2 on a separate grid)</label>
+        <label class="fb-check"><input type="checkbox" value="power_history"> Member power history tracker — watch the alliance grow over time</label>
+        <label class="fb-check"><input type="checkbox" value="event_modes"> Event-mode layouts (zombie surge corner, KvK rally point, war defense)</label>
+        <label class="fb-check"><input type="checkbox" value="roster_import"> Auto roster import from in-game screenshots (OCR)</label>
+      </div>
+    </div>
+    <div class="field" style="margin-top:13px">
+      <label>YOUR OWN IDEA OR COMMENT</label>
+      <textarea id="fb-comment" rows="3" maxlength="500" placeholder="Describe your idea, report a bug, or just say hi…"></textarea>
+    </div>
+    <div style="margin-top:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <button class="btn-save" id="btn-fb-submit" style="padding:8px 20px">📨 Submit Feedback</button>
+      <span id="fb-thanks" style="display:none;color:#88ff88;font-size:11px">✓ Thanks! Your feedback has been recorded.</span>
+    </div>
+  </div>
 </div>
 
 <div id="toast"></div>
@@ -1044,6 +1091,27 @@ function exportPNG(){
 }
 
 document.getElementById('btn-export-png').onclick = exportPNG;
+
+// ── Feedback form ───────────────────────────────────────────────────────────────
+document.getElementById('btn-fb-submit').onclick = async () => {
+  const name    = document.getElementById('fb-name').value.trim();
+  const comment = document.getElementById('fb-comment').value.trim();
+  const votes   = [...document.querySelectorAll('.fb-checks input[type=checkbox]:checked')].map(el => el.value);
+  if(!name && !comment && votes.length === 0){
+    toast('Add your name, vote for a feature, or write a comment first.', true);
+    return;
+  }
+  const d = await api('/api/feedback', {name, votes, comment});
+  if(d.ok){
+    document.getElementById('fb-thanks').style.display = 'inline';
+    document.getElementById('fb-name').value = '';
+    document.getElementById('fb-comment').value = '';
+    document.querySelectorAll('.fb-checks input[type=checkbox]').forEach(el => el.checked = false);
+    setTimeout(() => document.getElementById('fb-thanks').style.display = 'none', 5000);
+  } else {
+    toast('Could not save feedback — please try again.', true);
+  }
+};
 
 // ── Init ───────────────────────────────────────────────────────────────────────
 (async function init(){
