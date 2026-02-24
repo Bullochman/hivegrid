@@ -106,6 +106,14 @@ table.roster tr.row-assigned:hover td{background:#111122}
 .btn-sort.active{background:#1a1a3a;color:#8888cc;border-color:#4444aa}
 .btn-sort:hover{border-color:#6666aa;color:#8888cc;opacity:1}
 
+/* ── Multi-select ───────────────────────── */
+tr.row-selected td{background:#151540!important;box-shadow:inset 0 0 0 1px #3333aa}
+tr.row-selected:hover td{background:#1a1a50!important}
+#selection-bar{display:none;margin-bottom:8px;padding:6px 12px;background:#0d0d2a;border:1px solid #3333aa;border-radius:4px;font-size:11px;color:#8888ee;display:flex;align-items:center;gap:12px}
+#selection-bar span{flex:1}
+#selection-bar button{background:transparent;border:1px solid #333366;color:#6666aa;padding:2px 8px;border-radius:3px;font-size:10px;cursor:pointer}
+#selection-bar button:hover{border-color:#6666cc;color:#aaaaee}
+
 /* ── Inline editable cells in roster ────── */
 .inline-edit{background:transparent;border:1px solid transparent;color:inherit;font-family:'Courier New',monospace;font-size:11px;width:100%;padding:1px 3px;border-radius:3px;cursor:pointer}
 .inline-edit:hover{border-color:#252540;background:#0a0a18}
@@ -242,6 +250,10 @@ select.inline-edit{width:auto;min-width:50px}
     <button class="btn-sort" data-sort="power">⚡ Power</button>
     <button class="btn-sort" data-sort="name">🔤 Name</button>
     <span style="margin-left:8px;color:#333350">— click Rank/HQ/Power/Notes cells below to edit inline</span>
+  </div>
+  <div id="selection-bar" style="display:none">
+    <span id="selection-msg"></span>
+    <button id="btn-clear-sel">✕ Clear (Esc)</button>
   </div>
   <table class="roster">
     <thead><tr>
@@ -390,11 +402,14 @@ const RANK_CLR = {R5:'#da8fff',R4:'#ffd700',R3:'#00bfff',R2:'#44dd66',R1:'#6699f
 const RANK_ORD = {R5:0,R4:1,R3:2,R2:3,R1:4,'':5};
 
 // ── State ──────────────────────────────────────────────────────────────────────
-let cfg        = null;
-let editKey    = null;   // "col,row" open in modal
-let editName   = null;   // original name (null = new member)
-let dragFrom   = null;   // key being dragged
-let rosterSort = 'ring'; // ring | rank | power | name
+let cfg          = null;
+let editKey      = null;   // "col,row" open in modal
+let editName     = null;   // original name (null = new member)
+let dragFrom     = null;   // key being dragged
+let rosterSort   = 'ring'; // ring | rank | power | name
+let selectedNames = new Set();
+let lastRosterIdx = -1;
+let rosterRowOrder = [];   // names in rendered roster order (for shift-range)
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 const cellCoord = (col,row) => [
@@ -483,7 +498,15 @@ document.getElementById('btn-cancel').onclick = closeModal;
 document.getElementById('overlay').onclick = e => {
   if(e.target===document.getElementById('overlay')) closeModal();
 };
-document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+document.addEventListener('keydown', e => {
+  if(e.key==='Escape'){
+    closeModal();
+    if(selectedNames.size > 0){ selectedNames.clear(); lastRosterIdx = -1; updateSelectionUI(); }
+  }
+});
+document.getElementById('btn-clear-sel').onclick = () => {
+  selectedNames.clear(); lastRosterIdx = -1; updateSelectionUI();
+};
 
 document.getElementById('btn-save').onclick = async () => {
   const newName = document.getElementById('f-name').value.trim();
@@ -590,13 +613,19 @@ function renderGrid(){
           <div class="ctag"  style="color:${c}">${memberTag(name)}</div>
           <div class="ccoord">(${x},${y})</div>
           <div class="drag-hint">drag to move</div>`;
-        td.addEventListener('click', ()=> openModal(key));
+        td.addEventListener('click', ()=>{
+          if(selectedNames.size > 0){ selectedNames.clear(); lastRosterIdx = -1; updateSelectionUI(); }
+          else openModal(key);
+        });
       } else {
         td.classList.add('empty');
         td.innerHTML += `
           <div class="cname" style="color:#333348">·</div>
           <div class="ccoord">(${x},${y})</div>`;
-        td.addEventListener('click', ()=> openModal(key));
+        td.addEventListener('click', ()=>{
+          if(selectedNames.size > 0) placeSelected(col, row);
+          else openModal(key);
+        });
       }
 
       setupDrag(td, key, isMG, !!name);
@@ -646,6 +675,51 @@ function makeInlineInput(name, field, value, isSelect=false){
 }
 
 // ── Roster Rendering ───────────────────────────────────────────────────────────
+// ── Multi-select helpers ────────────────────────────────────────────────────────
+function updateSelectionUI(){
+  const bar = document.getElementById('selection-bar');
+  const msg = document.getElementById('selection-msg');
+  document.querySelectorAll('#roster-body tr').forEach(tr => {
+    tr.classList.toggle('row-selected', selectedNames.has(tr.dataset.name));
+  });
+  if(selectedNames.size > 0){
+    bar.style.display = 'flex';
+    msg.textContent = `${selectedNames.size} member${selectedNames.size===1?'':'s'} selected — click any empty grid cell to place them`;
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+async function placeSelected(startCol, startRow){
+  const mc = cfg.grid.mg_col, mr = cfg.grid.mg_row;
+  // Collect empty cells sorted by distance from clicked cell (Chebyshev), then angle
+  const emptyCells = [];
+  for(let c=0; c<cfg.grid.cols; c++){
+    for(let r=0; r<cfg.grid.rows; r++){
+      const k = `${c},${r}`;
+      if(c===mc && r===mr) continue;
+      if(cfg.assignments[k]) continue;
+      const dist = Math.max(Math.abs(c-startCol), Math.abs(r-startRow));
+      emptyCells.push({c, r, dist, angle: Math.atan2(c-startCol, -(r-startRow))});
+    }
+  }
+  emptyCells.sort((a,b) => a.dist-b.dist || a.angle-b.angle);
+
+  const names = [...selectedNames];
+  const cells = emptyCells.slice(0, names.length);
+  if(cells.length === 0){ toast('No empty cells nearby', true); return; }
+
+  let placed = 0;
+  for(let i=0; i<Math.min(names.length, cells.length); i++){
+    const d = await api('/api/assign', {name: names[i], col: cells[i].c, row: cells[i].r});
+    if(d.ok){ cfg = d.config; placed++; }
+  }
+  selectedNames.clear();
+  lastRosterIdx = -1;
+  renderAll();
+  toast(`Placed ${placed} member${placed===1?'':'s'}`);
+}
+
 function renderRoster(){
   const tbody = document.getElementById('roster-body');
 
@@ -685,6 +759,7 @@ function renderRoster(){
 
   tbody.innerHTML = '';
   let rowNum = 0;
+  rosterRowOrder = [...assigned, ...unassigned];
 
   for(const name of assigned){
     const [col,row] = posMap[name];
@@ -743,7 +818,25 @@ function renderRoster(){
     tdNotes.appendChild(makeInlineInput(name, 'notes', m.notes));
     tr.appendChild(tdNotes);
 
-    tr.addEventListener('click', ()=> openModal(`${col},${row}`));
+    tr.dataset.name = name;
+    const rowIdx = rosterRowOrder.indexOf(name);
+    tr.addEventListener('click', (e)=>{
+      if(e.target.closest('.inline-edit')) return; // don't intercept inline editors
+      if(e.ctrlKey || e.metaKey){
+        if(selectedNames.has(name)) selectedNames.delete(name);
+        else selectedNames.add(name);
+        lastRosterIdx = rowIdx;
+        updateSelectionUI();
+      } else if(e.shiftKey && lastRosterIdx >= 0){
+        const lo = Math.min(lastRosterIdx, rowIdx), hi = Math.max(lastRosterIdx, rowIdx);
+        for(let i=lo; i<=hi; i++) if(rosterRowOrder[i]) selectedNames.add(rosterRowOrder[i]);
+        updateSelectionUI();
+      } else if(selectedNames.size > 0){
+        selectedNames.clear(); lastRosterIdx = -1; updateSelectionUI();
+      } else {
+        openModal(`${col},${row}`);
+      }
+    });
     tbody.appendChild(tr);
   }
 
@@ -790,6 +883,25 @@ function renderRoster(){
       tdNotes.style.fontSize='10px';
       tdNotes.appendChild(makeInlineInput(name, 'notes', m.notes));
       tr.appendChild(tdNotes);
+
+      tr.dataset.name = name;
+      const rowIdx = rosterRowOrder.indexOf(name);
+      tr.addEventListener('click', (e)=>{
+        if(e.target.closest('.inline-edit')) return;
+        if(e.ctrlKey || e.metaKey){
+          if(selectedNames.has(name)) selectedNames.delete(name);
+          else selectedNames.add(name);
+          lastRosterIdx = rowIdx;
+          updateSelectionUI();
+        } else if(e.shiftKey && lastRosterIdx >= 0){
+          const lo = Math.min(lastRosterIdx, rowIdx), hi = Math.max(lastRosterIdx, rowIdx);
+          for(let i=lo; i<=hi; i++) if(rosterRowOrder[i]) selectedNames.add(rosterRowOrder[i]);
+          updateSelectionUI();
+        } else if(selectedNames.size > 0){
+          selectedNames.clear(); lastRosterIdx = -1; updateSelectionUI();
+        }
+        // plain click on unassigned row does nothing extra (no modal)
+      });
 
       tbody.appendChild(tr);
     }
