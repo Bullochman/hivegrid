@@ -81,6 +81,11 @@ button:active{transform:scale(.97)}
 .toolbar{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .coord-label{font-size:10px;color:var(--dim);margin-top:-10px;margin-bottom:14px}
 
+/* ── Roster + Payment side-by-side ─────── */
+.roster-pay-row{display:flex;gap:32px;align-items:flex-start;margin-top:20px}
+.roster-pay-row .roster-section{flex:1 1 auto;min-width:0}
+.roster-pay-row .tip-section{flex:0 0 360px;width:360px;flex-direction:column;margin-top:0;border-top:none;border-left:1px solid #151525;padding-left:24px;padding-top:4px}
+
 /* ── Roster ─────────────────────────────── */
 .roster-section h2{color:#9999cc;font-size:13px;margin-bottom:10px;letter-spacing:.5px}
 table.roster{border-collapse:collapse;width:100%;max-width:750px;font-size:11.5px}
@@ -227,6 +232,7 @@ select.inline-edit{width:auto;min-width:50px}
   <table class="grid" id="grid-table"></table>
 </div>
 
+<div class="roster-pay-row">
 <div class="roster-section">
   <h2>▸ MEMBER ROSTER <span id="roster-count" style="color:#444466;font-weight:normal;font-size:11px;margin-left:8px"></span></h2>
   <div class="sort-bar">
@@ -290,7 +296,7 @@ select.inline-edit{width:auto;min-width:50px}
 <div class="tip-section" id="tip-section">
 
   <!-- Unlock full version -->
-  <div class="tip-box" style="border-color:#2a2a55;flex:1;min-width:280px">
+  <div class="tip-box" style="border-color:#2a2a55">
     <h3>🔓 UNLOCK FULL VERSION — $10 ONE-TIME</h3>
     <p>Remove the watermark · Custom alliance name in all exports · Priority support · No subscription, ever.</p>
     <a class="btn-unlock" href="https://buy.stripe.com/REPLACE_WITH_LINK" target="_blank" rel="noopener">
@@ -305,7 +311,7 @@ select.inline-edit{width:auto;min-width:50px}
   </div>
 
   <!-- Tip jar -->
-  <div class="tip-box" style="min-width:240px;text-align:center">
+  <div class="tip-box" style="text-align:center">
     <h3>☕ TIP THE DEV</h3>
     <p style="margin-bottom:10px">Saved you hours of chaos?<br>Buy me a coffee — or flex your whale status.</p>
     <a href="https://venmo.com/Evan-Jones-85" target="_blank" rel="noopener" title="Scan or click to tip on Venmo">
@@ -324,7 +330,7 @@ select.inline-edit{width:auto;min-width:50px}
   </div>
 
   <!-- CSV format guide -->
-  <div class="tip-box" style="min-width:240px">
+  <div class="tip-box">
     <h3>📋 CSV FORMAT GUIDE</h3>
     <p>Upload a CSV with these exact columns (in any order):</p>
     <div class="csv-format-box">
@@ -340,6 +346,7 @@ select.inline-edit{width:auto;min-width:50px}
   </div>
 
 </div>
+</div><!-- end .roster-pay-row -->
 
 <!-- ── Feedback / Feature Requests ─────────────────────────────────── -->
 <div class="feedback-section">
