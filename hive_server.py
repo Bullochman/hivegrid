@@ -11,7 +11,7 @@ All changes are saved to hive_config.json and exported to
 hive_members_export.csv automatically.
 """
 
-import json, csv, sys, math, webbrowser, os
+import json, csv, sys, math, webbrowser, os, hmac, hashlib, secrets, smtplib, ssl, time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from threading import Timer
@@ -21,6 +21,7 @@ CONFIG     = DIR / "hive_config.json"
 APP_HTML   = DIR / "hive_app.html"
 EXPORT_CSV = DIR / "hive_members_export.csv"
 FEEDBACK   = DIR / "feedback.json"
+KEYS_FILE  = DIR / "keys.json"
 PORT       = int(os.environ.get("PORT", 8765))
 IS_HOSTED  = os.environ.get("RAILWAY_ENVIRONMENT") is not None
 
@@ -31,6 +32,10 @@ if not CONFIG.exists():
         import shutil
         shutil.copy(example, CONFIG)
         print(f"  [init] Created {CONFIG} from example")
+
+if not KEYS_FILE.exists():
+    with open(KEYS_FILE, "w") as f:
+        json.dump([], f)
 
 
 # ── Config helpers ─────────────────────────────────────────────────────────────
@@ -62,6 +67,80 @@ def _export_csv(cfg):
             ])
 
 
+# ── License key helpers ─────────────────────────────────────────────────────────
+def load_keys() -> set:
+    try:
+        with open(KEYS_FILE) as f:
+            return set(json.load(f))
+    except Exception:
+        return set()
+
+def save_key(key: str) -> None:
+    try:
+        with open(KEYS_FILE) as f:
+            keys = json.load(f)
+    except Exception:
+        keys = []
+    if key not in keys:
+        keys.append(key)
+    with open(KEYS_FILE, "w") as f:
+        json.dump(keys, f, indent=2)
+
+def generate_key() -> str:
+    return f"HIVE-{secrets.token_hex(3).upper()}-{secrets.token_hex(3).upper()}"
+
+def _verify_stripe_signature(raw_body: bytes, sig_header: str, secret: str) -> bool:
+    try:
+        parts = {k: v for k, v in (p.split("=", 1) for p in sig_header.split(",") if "=" in p)}
+        timestamp = parts.get("t", "")
+        v1_sig = parts.get("v1", "")
+        if not timestamp or not v1_sig:
+            return False
+        if abs(time.time() - int(timestamp)) > 300:
+            return False
+        signed_payload = f"{timestamp}.{raw_body.decode('utf-8')}"
+        expected = hmac.new(
+            secret.encode("utf-8"),
+            signed_payload.encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+        return hmac.compare_digest(expected, v1_sig)
+    except Exception:
+        return False
+
+def send_key_email(to_email: str, key: str) -> None:
+    host  = os.environ.get("SMTP_HOST", "")
+    port  = int(os.environ.get("SMTP_PORT", 587))
+    user  = os.environ.get("SMTP_USER", "")
+    pw    = os.environ.get("SMTP_PASS", "")
+    frm   = os.environ.get("SMTP_FROM", user)
+    if not (host and user and pw):
+        print("[email] Warning: SMTP env vars not set — skipping email delivery")
+        return
+    try:
+        subject = "Your Alliance Hive Grid License Key"
+        body = (
+            f"Thank you for your purchase!\n\n"
+            f"Your license key is:\n\n"
+            f"    {key}\n\n"
+            f"To activate:\n"
+            f"  1. Open the Alliance Hive Grid tool\n"
+            f"  2. Click 'Unlock Full Version'\n"
+            f"  3. Paste the key above and click Unlock\n\n"
+            f"Tool URL: https://web-production-46ee1.up.railway.app\n\n"
+            f"Questions? Reply to this email.\n"
+        )
+        msg = f"From: {frm}\r\nTo: {to_email}\r\nSubject: {subject}\r\n\r\n{body}"
+        context = ssl.create_default_context()
+        with smtplib.SMTP(host, port, timeout=10) as smtp:
+            smtp.starttls(context=context)
+            smtp.login(user, pw)
+            smtp.sendmail(frm, to_email, msg.encode("utf-8"))
+        print(f"[email] Sent key {key} to {to_email}")
+    except Exception as e:
+        print(f"[email] Error sending to {to_email}: {e}")
+
+
 # ── HTTP Handler ───────────────────────────────────────────────────────────────
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, *_): pass   # silence access log
@@ -84,6 +163,45 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.end_headers()
+
+    # ── Stripe webhook ─────────────────────────────────────────────────────────
+    def _handle_stripe_webhook(self):
+        webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+        if not webhook_secret:
+            print("[webhook] Error: STRIPE_WEBHOOK_SECRET not set")
+            self._send_json({"error": "Webhook secret not configured"}, status=500)
+            return
+
+        length = int(self.headers.get("Content-Length", 0))
+        raw_body = self.rfile.read(length) if length else b""
+
+        sig_header = self.headers.get("Stripe-Signature", "")
+        if not _verify_stripe_signature(raw_body, sig_header, webhook_secret):
+            print("[webhook] Invalid signature")
+            self._send_json({"error": "Invalid signature"}, status=400)
+            return
+
+        try:
+            event = json.loads(raw_body)
+        except Exception:
+            self._send_json({"error": "Invalid JSON"}, status=400)
+            return
+
+        if event.get("type") == "checkout.session.completed":
+            obj = event.get("data", {}).get("object", {})
+            email = (
+                (obj.get("customer_details") or {}).get("email")
+                or obj.get("customer_email")
+            )
+            key = generate_key()
+            save_key(key)
+            print(f"[webhook] Generated key {key} for order")
+            if email:
+                send_key_email(email, key)
+            else:
+                print("[webhook] Warning: no email found in checkout session")
+
+        self._send_json({"ok": True})
 
     # ── GET ────────────────────────────────────────────────────────────────────
     def do_GET(self):
@@ -113,6 +231,10 @@ class Handler(BaseHTTPRequestHandler):
 
     # ── POST ───────────────────────────────────────────────────────────────────
     def do_POST(self):
+        if self.path == "/api/stripe-webhook":
+            self._handle_stripe_webhook()
+            return
+
         data = self._read_json()
         cfg  = load_cfg()
         g    = cfg["grid"]
@@ -210,10 +332,10 @@ class Handler(BaseHTTPRequestHandler):
 
         # ── /api/unlock  {key} — validate license key ─────────────────────────
         elif self.path == "/api/unlock":
-            # Keys stored as a simple set — replace with DB lookup in hosted version
-            VALID_KEYS = {"HIVE-DEMO-2026"}   # placeholder; real keys generated per purchase
             key = (data.get("key") or "").strip().upper()
-            if key in VALID_KEYS:
+            valid_keys = load_keys()
+            valid_keys.add("HIVE-DEMO-2026")   # demo key stays hardcoded, not in file
+            if key in valid_keys:
                 cfg["unlocked"] = True
                 save_cfg(cfg)
                 self._send_json({"ok": True, "config": cfg})
@@ -234,7 +356,6 @@ class Handler(BaseHTTPRequestHandler):
 
         # ── /api/feedback  {name, votes: [...], comment} ─────────────────────
         elif self.path == "/api/feedback":
-            import time
             name    = (data.get("name")    or "Anonymous").strip()[:60]
             votes   = [str(v)[:40] for v in (data.get("votes") or []) if isinstance(v, str)]
             comment = (data.get("comment") or "").strip()[:500]
