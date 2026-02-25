@@ -354,7 +354,7 @@ select.inline-edit{width:auto;min-width:50px}
     </div>
     <p style="margin-top:10px">Extra spaces are trimmed automatically. Duplicate names keep the highest rank row.</p>
     <p style="margin-top:6px;color:#443322">💡 <em>Pro tip:</em> Have your leader read out each member's name, rank, HQ level, and power out loud while someone fills in the spreadsheet — takes about 5 minutes for a full alliance.</p>
-    <a href="#" id="btn-dl-template" style="display:block;margin-top:10px;text-align:center;background:#001520;border:1px solid #003344;color:#00bfff;border-radius:4px;padding:5px 0;font-size:11px;text-decoration:none">⬇ Download blank CSV template</a>
+    <a href="#" id="btn-dl-template" style="display:block;margin-top:10px;text-align:center;background:#001520;border:1px solid #003344;color:#00bfff;border-radius:4px;padding:5px 0;font-size:11px;text-decoration:none">⬇ Download roster as CSV</a>
   </div>
 
   <!-- ── Feedback / Feature Requests ─────────────────────────────────── -->
@@ -1117,12 +1117,28 @@ document.getElementById('btn-unlock-key').onclick = async () => {
 // ── CSV template download ────────────────────────────────────────────────────────
 document.getElementById('btn-dl-template').addEventListener('click', e => {
   e.preventDefault();
-  const csv = 'Member,Rank,HQ Level,Total Power,Notes\nPlayerName,R4,28,54.2M,\nAnotherPlayer,R3,25,38.1M,scout\n';
+  const rows = [['Member','Rank','HQ Level','Total Power','Notes']];
+  const members = cfg && cfg.members ? cfg.members : {};
+  if(Object.keys(members).length > 0){
+    // Sort by rank then power, same as roster
+    const sorted = Object.entries(members).sort((a,b)=>{
+      const ra = RANK_ORD[a[1].rank||'']??5, rb = RANK_ORD[b[1].rank||'']??5;
+      if(ra!==rb) return ra-rb;
+      return parsePow(b[1].power) - parsePow(a[1].power);
+    });
+    for(const [name, m] of sorted){
+      rows.push([name, m.rank||'', m.hq??'', m.power||'', m.notes||'']);
+    }
+  } else {
+    rows.push(['PlayerName','R4','28','54.2M','']);
+    rows.push(['AnotherPlayer','R3','25','38.1M','scout']);
+  }
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob([csv], {type:'text/csv'});
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href=url; a.download='hive_template.csv'; a.click();
+  const a = document.createElement('a'); a.href=url; a.download='hive_roster.csv'; a.click();
   setTimeout(()=>URL.revokeObjectURL(url), 2000);
-  toast('📋 Template downloaded');
+  toast('📋 Roster downloaded as CSV');
 });
 
 // ── Sort buttons ────────────────────────────────────────────────────────────────
