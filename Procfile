@@ -1,1 +1,1 @@
-web: python3 hive_server.py
+web: python3 Alliance_Hive_Grid_Manager/hive_server.py
