@@ -38,10 +38,173 @@ if not KEYS_FILE.exists():
         json.dump([], f)
 
 
+# ── Layout presets ─────────────────────────────────────────────────────────────
+# Marshall's Guard: 3×3 game tiles = 1 cell. Members butt against the MG, no gaps.
+#                   Cell-grid model: positions are "col,row" in a 10×10 grid.
+# Military Stronghold: 21×21 game tiles = 7×7 cells. 2 tiles of empty space
+#                      between every member (in every direction). Strongest
+#                      members butt directly against the stronghold mud (Ring 1).
+#                      Tile-grid model: positions are "tile_x,tile_y" relative
+#                      to the fortress *centre*. 4 rings × ~varied slot-count
+#                      gives 120 total slots (room for 100 members + 20 spare).
+LAYOUT_PRESETS = {
+    "mg": {
+        "label": "Marshall's Guard",
+        "short": "MG",
+        "use_tile_coords": False,
+        "center_size":  1,        # cells the central object occupies
+        "grid_size":   10,        # total grid dimension in cells
+    },
+    "stronghold": {
+        "label": "Military Stronghold",
+        "short": "Stronghold",
+        "use_tile_coords": True,
+        "center_tiles": 21,       # central fortress is 21×21 game tiles
+        "member_size":   3,       # alliance member footprint = 3×3 tiles
+        "gap_tiles":     2,       # 2-tile gap between members (and between rings)
+        "max_rings":     4,       # 4 rings = ~120 slots (enough for 100 + spare)
+        # Legacy cell-grid fields (vestigial, for code paths that still inspect them)
+        "center_size":   7,
+        "grid_size":    13,
+    },
+}
+
+def _ensure_layout(cfg):
+    """Backfill the layout field on configs created before stronghold mode."""
+    if "layout" not in cfg:
+        cfg["layout"] = {"mode": "mg"}
+    mode = cfg["layout"].get("mode", "mg")
+    if mode not in LAYOUT_PRESETS:
+        mode = "mg"
+        cfg["layout"]["mode"] = mode
+    preset = LAYOUT_PRESETS[mode]
+    # Copy preset fields onto cfg["layout"] so clients can read them in /api/config
+    for k, v in preset.items():
+        cfg["layout"][k] = v
+    return cfg
+
+def _center_half(cfg):
+    """Half-extent of the central block in *its own unit* (cells for MG, tiles for stronghold).
+    e.g. MG centre is 1 cell → half = 0;  Stronghold centre is 21 tiles → half = 10."""
+    mode = cfg["layout"]["mode"]
+    if LAYOUT_PRESETS[mode].get("use_tile_coords"):
+        return (LAYOUT_PRESETS[mode]["center_tiles"] - 1) // 2
+    return (LAYOUT_PRESETS[mode]["center_size"] - 1) // 2
+
+def _is_center(cfg, c, r):
+    """Does a member placed at (c, r) overlap the central block?
+    MG mode: (c, r) are cell coords.  Stronghold mode: (c, r) are tile coords
+    of the *top-left* of the member's 3×3 footprint, measured from fortress centre.
+    """
+    mode = cfg["layout"]["mode"]
+    preset = LAYOUT_PRESETS[mode]
+    if not preset.get("use_tile_coords"):
+        g = cfg["grid"]
+        h = _center_half(cfg)
+        return abs(c - g["mg_col"]) <= h and abs(r - g["mg_row"]) <= h
+    # Stronghold: tile-coord overlap check
+    half   = (preset["center_tiles"] - 1) // 2
+    member = preset["member_size"]
+    return (c + member - 1 >= -half and c <= half and
+            r + member - 1 >= -half and r <= half)
+
+def _ring_dist(cfg, c, r):
+    """Distance from the outer edge of the central block.
+    1 = first ring, 2 = second ring, ...  0 = inside the centre.
+    MG mode: cell-Chebyshev distance.
+    Stronghold mode: ring number based on 2-tile-gap layout."""
+    mode = cfg["layout"]["mode"]
+    preset = LAYOUT_PRESETS[mode]
+    if not preset.get("use_tile_coords"):
+        g = cfg["grid"]
+        h = _center_half(cfg)
+        cheb = max(abs(c - g["mg_col"]), abs(r - g["mg_row"]))
+        return max(0, cheb - h)
+    # Stronghold: ring r occupies the tile band [half+1+(r-1)*pitch, half+(r-1)*pitch+member]
+    # in whichever axis is dominant.
+    half   = (preset["center_tiles"] - 1) // 2
+    member = preset["member_size"]
+    pitch  = member + preset["gap_tiles"]
+    d = max(abs(c), abs(r))   # use top-left corner (lower-magnitude) of the member footprint
+    # Recompute using the *outer* corner so a member straddling a ring sits in its ring:
+    d_outer = max(abs(c) + (member-1) if c < 0 else abs(c + member - 1),
+                  abs(r) + (member-1) if r < 0 else abs(r + member - 1))
+    if d_outer <= half:
+        return 0
+    return ((d_outer - half - 1) // pitch) + 1
+
+
+def stronghold_slot_list(preset=None):
+    """Enumerate every alliance-member slot around the stronghold.
+    Returns a list of (tile_x, tile_y, ring) tuples, ordered Ring 1 first.
+
+    Strategy: each ring is a hollow rectangular frame. The four CORNERS of
+    the frame each hold a member (anchored), then inner edge members are
+    packed at the standard pitch (member + gap) between the corners. The
+    final inner→corner gap may shrink to 1 tile when (frame length - corner
+    width) % pitch ≠ 0 — that's acceptable because a 1-tile gap is still
+    too narrow for an enemy 3×3 unit to teleport into. The pure 2-tile gap
+    is preserved between all *inner* members within an edge.
+
+    Slot ordering within a ring is designed for *partial fills* to look
+    symmetric: emit the 4 corners first (so any partial ring still has
+    anchored corners), then round-robin around the 4 edges (N → E → S → W)
+    one inner-member-position at a time.
+    """
+    p = preset or LAYOUT_PRESETS["stronghold"]
+    half   = (p["center_tiles"] - 1) // 2
+    member = p["member_size"]
+    gap    = p["gap_tiles"]
+    pitch  = member + gap
+    slots = []
+    for r in range(1, p["max_rings"] + 1):
+        inner = half + 1 + (r - 1) * pitch
+        outer = inner + member - 1
+        edge_first = -outer + pitch                # first inner-member position
+        edge_last  = inner - member                # last inner-member position
+        if edge_last >= edge_first:
+            n_inner = (edge_last - edge_first) // pitch + 1
+        else:
+            n_inner = 0
+
+        # 1) Four corners first (so even a *partial* ring fill anchors them).
+        slots.append((-outer, -outer, r))   # NW
+        slots.append(( inner, -outer, r))   # NE
+        slots.append(( inner,  inner, r))   # SE
+        slots.append((-outer,  inner, r))   # SW
+
+        # 2) Round-robin across the 4 edges, alternating sides on each pass
+        #    so partial fills stay visually balanced.
+        for i in range(n_inner):
+            # Walk inner positions from the corners *inward* (closest-to-corner
+            # first), alternating between the two ends of each edge: helps the
+            # outermost ring feel "anchored" when it's only partially filled.
+            half_idx = i // 2
+            from_far = (i % 2 == 1)
+            pos = (n_inner - 1 - half_idx) if from_far else half_idx
+            x = edge_first + pos * pitch
+            slots.append((x, -outer, r))                  # N inner
+            slots.append(( inner, x, r))                  # E inner
+            slots.append((x,  inner, r))                  # S inner
+            slots.append((-outer, x, r))                  # W inner
+
+    return slots
+
+
 # ── Config helpers ─────────────────────────────────────────────────────────────
 def load_cfg():
     with open(CONFIG) as f:
-        return json.load(f)
+        cfg = json.load(f)
+    cfg = _ensure_layout(cfg)
+    # Evict orphan stronghold assignments — slot positions that no longer exist
+    # under the current ring algorithm (happens after a slot-algorithm change).
+    if cfg["layout"].get("use_tile_coords"):
+        valid_keys = {f"{tx},{ty}" for tx, ty, _ in stronghold_slot_list()}
+        stale = [k for k in cfg["assignments"] if k not in valid_keys]
+        if stale:
+            for k in stale:
+                del cfg["assignments"][k]
+    return cfg
 
 def save_cfg(cfg):
     with open(CONFIG, "w") as f:
@@ -216,6 +379,15 @@ class Handler(BaseHTTPRequestHandler):
         elif self.path == "/api/config":
             self._send_json(load_cfg())
 
+        elif self.path == "/api/stronghold-slots":
+            slots = stronghold_slot_list()
+            p = LAYOUT_PRESETS["stronghold"]
+            self._send_json({
+                "ok": True,
+                "preset": p,
+                "slots": [{"tx": tx, "ty": ty, "ring": r} for tx, ty, r in slots],
+            })
+
         elif self.path == "/api/get-feedback":
             data = []
             if FEEDBACK.exists():
@@ -239,6 +411,7 @@ class Handler(BaseHTTPRequestHandler):
         cfg  = load_cfg()
         g    = cfg["grid"]
         mc, mr = g["mg_col"], g["mg_row"]
+        center_label = cfg["layout"]["short"]
 
         # ── /api/move  {from: "col,row", to: "col,row"} ──────────────────────
         if self.path == "/api/move":
@@ -248,8 +421,8 @@ class Handler(BaseHTTPRequestHandler):
                 self._send_json({"ok": False, "error": "Invalid move"}); return
             sc, sr = map(int, src.split(","))
             dc, dr = map(int, dst.split(","))
-            if (sc == mc and sr == mr) or (dc == mc and dr == mr):
-                self._send_json({"ok": False, "error": "Cannot move MG"}); return
+            if _is_center(cfg, sc, sr) or _is_center(cfg, dc, dr):
+                self._send_json({"ok": False, "error": f"Cannot move into {center_label}"}); return
             name_src = cfg["assignments"].pop(src, None)
             name_dst = cfg["assignments"].pop(dst, None)
             if name_src: cfg["assignments"][dst] = name_src
@@ -264,8 +437,8 @@ class Handler(BaseHTTPRequestHandler):
             row  = int(data.get("row", 0))
             if not name:
                 self._send_json({"ok": False, "error": "Name required"}); return
-            if col == mc and row == mr:
-                self._send_json({"ok": False, "error": "That cell is MG"}); return
+            if _is_center(cfg, col, row):
+                self._send_json({"ok": False, "error": f"That cell is part of the {center_label}"}); return
             # remove from old position
             for k, v in list(cfg["assignments"].items()):
                 if v == name: del cfg["assignments"][k]; break
@@ -421,12 +594,44 @@ class Handler(BaseHTTPRequestHandler):
             save_cfg(cfg)
             self._send_json({"ok": True, "added": added, "updated": updated, "config": cfg})
 
+        # ── /api/set-layout {mode: "mg" | "stronghold"} ──────────────────────
+        elif self.path == "/api/set-layout":
+            mode = (data.get("mode") or "").strip().lower()
+            if mode not in LAYOUT_PRESETS:
+                self._send_json({"ok": False, "error": f"Unknown layout: {mode}"}); return
+            preset = LAYOUT_PRESETS[mode]
+            prev_mode = cfg.get("layout", {}).get("mode", "mg")
+            cfg["layout"] = {"mode": mode}
+            new_size = preset["grid_size"]
+            cfg["grid"]["cols"]   = new_size
+            cfg["grid"]["rows"]   = new_size
+            cfg["grid"]["mg_col"] = new_size // 2
+            cfg["grid"]["mg_row"] = new_size // 2
+            cfg["grid"]["step"]   = 3
+            cfg = _ensure_layout(cfg)
+            evicted = 0
+            # Switching modes swaps the entire coordinate system → clear all placements.
+            if prev_mode != mode:
+                evicted = len(cfg["assignments"])
+                cfg["assignments"] = {}
+            else:
+                # Same mode, just re-anchored — evict only placements now inside the centre.
+                for k in list(cfg["assignments"].keys()):
+                    try:
+                        c, r = map(int, k.split(","))
+                    except ValueError:
+                        del cfg["assignments"][k]; evicted += 1; continue
+                    if _is_center(cfg, c, r):
+                        del cfg["assignments"][k]; evicted += 1
+            save_cfg(cfg)
+            self._send_json({"ok": True, "evicted": evicted, "config": cfg})
+
         # ── /api/auto — auto-assign with configurable sort priority ──────────
         elif self.path == "/api/auto":
             g = cfg["grid"]
             mc, mr = g["mg_col"], g["mg_row"]
 
-            def cheby(c, r): return max(abs(c - mc), abs(r - mr))
+            def cheby(c, r): return _ring_dist(cfg, c, r)
             def ppow(p):
                 try: return float(str(p or 0).replace("M","").strip())
                 except: return 0.0
@@ -462,18 +667,32 @@ class Handler(BaseHTTPRequestHandler):
             else:
                 queue = sorted(unassigned, key=make_key)
 
-            empty = []
-            for c in range(g["cols"]):
-                for r in range(g["rows"]):
-                    k = f"{c},{r}"
-                    if k not in cfg["assignments"] and not (c == mc and r == mr):
-                        empty.append((cheby(c,r), math.atan2(c-mc, -(r-mr)), c, r))
-            empty.sort()
-
-            placed = 0
-            for name, (_, _, c, r) in zip(queue, empty):
-                cfg["assignments"][f"{c},{r}"] = name
-                placed += 1
+            mode = cfg["layout"]["mode"]
+            if LAYOUT_PRESETS[mode].get("use_tile_coords"):
+                # Stronghold: the canonical slot list is already ordered for
+                # symmetric partial-ring fills (corners first, then N/E/S/W
+                # round-robin). Just walk it in order.
+                empty = []
+                for tx, ty, ring in stronghold_slot_list():
+                    k = f"{tx},{ty}"
+                    if k not in cfg["assignments"]:
+                        empty.append((tx, ty))
+                placed = 0
+                for name, (tx, ty) in zip(queue, empty):
+                    cfg["assignments"][f"{tx},{ty}"] = name
+                    placed += 1
+            else:
+                empty = []
+                for c in range(g["cols"]):
+                    for r in range(g["rows"]):
+                        k = f"{c},{r}"
+                        if k not in cfg["assignments"] and not (c == mc and r == mr):
+                            empty.append((cheby(c,r), math.atan2(c-mc, -(r-mr)), c, r))
+                empty.sort()
+                placed = 0
+                for name, (_, _, c, r) in zip(queue, empty):
+                    cfg["assignments"][f"{c},{r}"] = name
+                    placed += 1
 
             save_cfg(cfg)
             self._send_json({"ok": True, "placed": placed, "config": cfg})
