@@ -27,6 +27,35 @@ h1{color:#fff;font-size:19px;letter-spacing:.5px}
 /* ── Grid ───────────────────────────────── */
 .grid-wrap{overflow-x:auto;margin-bottom:36px}
 table.grid{border-collapse:collapse;border:2px solid #ffffff22}
+
+/* ── Stronghold tile canvas ──────────────── */
+.sh-wrap{overflow:auto;margin-bottom:36px;padding:24px;background:#0a0f0a;border:1px solid #1a2a1a;border-radius:6px;display:none;position:relative}
+.sh-wrap.active{display:block}
+.sh-canvas{position:relative;margin:auto;background:repeating-linear-gradient(0deg,#0d150d 0,#0d150d 11px,#0f180f 11px,#0f180f 12px),repeating-linear-gradient(90deg,#0d150d 0,#0d150d 11px,#0f180f 11px,#0f180f 12px);border:1px solid #1a2a1a}
+.sh-fortress{position:absolute;background:linear-gradient(135deg,#5c1a1a,#3a0e0e);border:2px solid #ff444466;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#ff8888;text-align:center;box-shadow:0 0 28px #ff222244 inset,0 0 14px #ff333355}
+.sh-fortress::before{content:"";position:absolute;inset:-6px;border:1px dashed #884444;border-radius:2px;pointer-events:none}
+.sh-fortress .sf-title{font-size:11px;letter-spacing:1px;font-weight:bold;text-shadow:0 1px 2px #000}
+.sh-fortress .sf-sub{font-size:9px;color:#cc6666;margin-top:2px}
+.sh-fortress .sf-coord{font-size:9px;color:#aa5555;margin-top:5px}
+.sh-slot{position:absolute;border:1px solid var(--border);background:#181830;display:flex;align-items:center;justify-content:center;flex-direction:column;font-size:8px;cursor:pointer;transition:transform .1s,background .12s,border-color .12s;overflow:hidden;text-align:center;line-height:1.1}
+.sh-slot:hover{transform:scale(1.06);z-index:5;border-color:#6666cc}
+.sh-slot.empty{background:#10101a;border-style:dashed;border-color:#252540;color:#3a3a55;font-style:italic;opacity:.55}
+.sh-slot.empty:hover{opacity:.85;background:#15152a}
+.sh-slot.r-1{box-shadow:0 0 6px #ff444477 inset}
+.sh-slot.r-2{box-shadow:0 0 4px #cc880055 inset}
+.sh-slot.r-3{box-shadow:0 0 3px #4488cc44 inset}
+.sh-slot.r-4{box-shadow:0 0 2px #44884444 inset}
+.sh-slot.drag-src{opacity:.4;outline:2px dashed #6666ff}
+.sh-slot.drag-over{outline:2px solid #88ffaa;background:#1a2a1a !important;z-index:6}
+.sh-slot .sh-name{font-size:9px;font-weight:bold;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 1px}
+.sh-slot .sh-rk{font-size:7px;opacity:.85}
+.sh-slot .sh-coord{font-size:6.5px;color:#55557a}
+.sh-slot.ring-1-edge{border-color:#ff444466}
+.sh-ringbadge{position:absolute;font-size:9px;color:#444466;pointer-events:none;font-weight:bold;letter-spacing:1px}
+
+/* layout-mode dropdown */
+#layout-mode{background:#0a0a14;border:1px solid #5555aa;color:#9999ff;font-family:'Courier New',monospace;font-size:11px;border-radius:4px;padding:4px 8px;cursor:pointer;margin-left:4px}
+#layout-mode:focus{outline:none;border-color:#8888ff}
 td.cell{
   border:1px solid var(--border);
   width:var(--cell-w);min-width:var(--cell-w);max-width:var(--cell-w);
@@ -197,6 +226,12 @@ select.inline-edit{width:auto;min-width:50px}
   </div>
   <div class="meta" id="meta">Connecting to server…</div>
   <div class="toolbar">
+    <label style="color:#6666aa;font-size:11px;display:inline-flex;align-items:center;gap:4px;letter-spacing:.5px">FORMATION
+      <select id="layout-mode" title="Switch between Marshall's Guard event (3×3) and Military Stronghold (21×21, 2-tile spacing, 4 rings)">
+        <option value="mg">⚑ Marshall's Guard (3×3, no gaps)</option>
+        <option value="stronghold">🏰 Military Stronghold (21×21, 2-tile gaps)</option>
+      </select>
+    </label>
     <button class="btn-auto"   id="btn-auto-assign"  title="Auto-assign members to grid cells">⚡ Auto-Assign</button>
     <select id="auto-sort-mode" title="Priority order for auto-assign" style="background:#0a0a14;border:1px solid #33aa33;color:#88ff88;font-family:'Courier New',monospace;font-size:11px;border-radius:4px;padding:4px 8px;cursor:pointer">
       <option value="rank,power">Rank → Power</option>
@@ -237,8 +272,18 @@ select.inline-edit{width:auto;min-width:50px}
   <span id="wm-msg">Free version — <a href="#tip-section">unlock full features for $10 one-time →</a></span>
 </div>
 
-<div class="grid-wrap">
+<div class="grid-wrap" id="grid-wrap">
   <table class="grid" id="grid-table"></table>
+</div>
+
+<!-- Stronghold canvas (shown only when Military Stronghold layout is active) -->
+<div class="sh-wrap" id="stronghold-wrap">
+  <div style="color:#cc6666;font-size:11px;margin-bottom:10px;letter-spacing:.4px">
+    🏰 <strong>MILITARY STRONGHOLD</strong> &nbsp;·&nbsp; 21×21 tile fortress &nbsp;·&nbsp;
+    Each alliance member = 3×3 tiles, 2-tile gap between every member &nbsp;·&nbsp;
+    <span style="color:#ff8888">Ring 1 = strongest (against the mud)</span>
+  </div>
+  <div class="sh-canvas" id="stronghold-canvas"></div>
 </div>
 
 <div class="roster-pay-row">
@@ -412,14 +457,41 @@ let lastRosterIdx = -1;
 let rosterRowOrder = [];   // names in rendered roster order (for shift-range)
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
-const cellCoord = (col,row) => [
-  cfg.mg.x + (col - cfg.grid.mg_col) * cfg.grid.step,
-  cfg.mg.y + (row - cfg.grid.mg_row) * cfg.grid.step
-];
-const chebyshev = (col,row) => Math.max(
-  Math.abs(col - cfg.grid.mg_col),
-  Math.abs(row - cfg.grid.mg_row)
-);
+// In MG mode (col,row) are cell coords; in stronghold mode they're tile coords
+// (top-left of the member's 3×3 footprint, signed, relative to fortress centre).
+const isStronghold = () => !!cfg.layout && cfg.layout.use_tile_coords;
+
+const cellCoord = (col,row) => {
+  if(isStronghold()){
+    // World tile coord = anchor + offset of footprint centre (top-left + 1)
+    return [cfg.mg.x + col + 1, cfg.mg.y + row + 1];
+  }
+  return [
+    cfg.mg.x + (col - cfg.grid.mg_col) * cfg.grid.step,
+    cfg.mg.y + (row - cfg.grid.mg_row) * cfg.grid.step
+  ];
+};
+
+const chebyshev = (col,row) => {
+  if(isStronghold()) return strongholdRing(col, row);
+  return Math.max(
+    Math.abs(col - cfg.grid.mg_col),
+    Math.abs(row - cfg.grid.mg_row)
+  );
+};
+
+function strongholdRing(tx, ty){
+  const p = cfg.layout || {};
+  const half   = ((p.center_tiles || 21) - 1) / 2;
+  const member = p.member_size  || 3;
+  const pitch  = member + (p.gap_tiles || 2);
+  const dx = Math.max(Math.abs(tx), Math.abs(tx + member - 1));
+  const dy = Math.max(Math.abs(ty), Math.abs(ty + member - 1));
+  const d = Math.max(dx, dy);
+  if(d <= half) return 0;
+  return Math.floor((d - half - 1) / pitch) + 1;
+}
+
 const memberAt  = (col,row) => cfg.assignments[`${col},${row}`] || null;
 const clr       = rank => RANK_CLR[rank] || RANK_CLR[''];
 const parsePow  = p => parseFloat((p||'0').replace(/[^\d.]/g,'')) || 0;
@@ -427,6 +499,18 @@ const parsePow  = p => parseFloat((p||'0').replace(/[^\d.]/g,'')) || 0;
 function memberTag(name){
   const m = cfg.members[name]||{};
   return `(${m.rank||'?'},${m.hq??'—'},${m.power||'—'})`;
+}
+
+// ── Stronghold slot list (cached) ──────────────────────────────────────────────
+let strongholdSlots = null;
+async function loadStrongholdSlots(){
+  if(strongholdSlots) return strongholdSlots;
+  try {
+    const r = await fetch('/api/stronghold-slots');
+    const d = await r.json();
+    if(d.ok) strongholdSlots = d.slots;
+  } catch(e){ console.error('stronghold-slots fetch failed', e); }
+  return strongholdSlots;
 }
 
 // ── API ────────────────────────────────────────────────────────────────────────
@@ -477,7 +561,14 @@ function openModal(key){
   editName = name||null;
 
   document.getElementById('modal-title').textContent = name ? `Edit — ${name}` : `Add Member`;
-  document.getElementById('modal-coord').textContent  = `Grid position: col ${col}, row ${row}  →  (${x}, ${y})`;
+  if(isStronghold()){
+    const ring = strongholdRing(col, row);
+    document.getElementById('modal-coord').textContent =
+      `🏰 Stronghold · Ring ${ring} · tile offset (${col},${row}) → game coord (${x}, ${y})`;
+  } else {
+    document.getElementById('modal-coord').textContent =
+      `⚑ Grid position: col ${col}, row ${row}  →  (${x}, ${y})`;
+  }
   document.getElementById('f-name').value   = name||'';
   document.getElementById('f-rank').value   = m.rank||'';
   document.getElementById('f-hq').value     = m.hq!=null ? m.hq : '';
@@ -566,6 +657,122 @@ function setupDrag(td, key, isMG, hasOccupant){
 
 // ── Grid Rendering ─────────────────────────────────────────────────────────────
 function renderGrid(){
+  const sh = isStronghold();
+  document.getElementById('grid-wrap').style.display = sh ? 'none' : '';
+  document.getElementById('stronghold-wrap').classList.toggle('active', sh);
+  if(sh){
+    if(!strongholdSlots){
+      loadStrongholdSlots().then(() => renderStronghold());
+    } else {
+      renderStronghold();
+    }
+  } else {
+    renderGridMG();
+  }
+}
+
+// ── Stronghold Rendering ───────────────────────────────────────────────────────
+const SH_TILE_PX = 14;
+const SH_PAD_TILES = 4;        // padding around Ring 4
+
+function renderStronghold(){
+  const canvas = document.getElementById('stronghold-canvas');
+  if(!canvas) return;
+  if(!Array.isArray(strongholdSlots)){
+    canvas.innerHTML = '<div style="color:#888;padding:40px;font-size:11px">Loading stronghold layout…</div>';
+    return;
+  }
+  const p = cfg.layout || {};
+  const half   = ((p.center_tiles || 21) - 1) / 2;       // 10
+  const member = p.member_size || 3;
+  const maxRings = p.max_rings || 4;
+  const ringPitch = member + (p.gap_tiles || 2);
+
+  // Outer extent of Ring N (tile coord of outermost tile): half + (N-1)*pitch + member
+  const outerExtent = half + (maxRings - 1) * ringPitch + member;   // = 30 for default preset
+  const halfTiles = outerExtent + SH_PAD_TILES;                     // padded canvas radius
+  const span = halfTiles * 2 + 1;
+  canvas.innerHTML = '';
+  canvas.style.width  = (span * SH_TILE_PX) + 'px';
+  canvas.style.height = (span * SH_TILE_PX) + 'px';
+  // px() converts a tile coord (signed, fortress-centered) to pixel offset within canvas
+  const px = (t) => (t + halfTiles) * SH_TILE_PX;
+
+  // Draw fortress
+  const fortress = document.createElement('div');
+  fortress.className = 'sh-fortress';
+  fortress.style.left   = px(-half) + 'px';
+  fortress.style.top    = px(-half) + 'px';
+  fortress.style.width  = ((2 * half + 1) * SH_TILE_PX) + 'px';
+  fortress.style.height = ((2 * half + 1) * SH_TILE_PX) + 'px';
+  fortress.innerHTML = `
+    <div class="sf-title">🏰 STRONGHOLD</div>
+    <div class="sf-sub">21×21 tiles · 7×7 cells</div>
+    <div class="sf-coord">centre @ (${cfg.mg.x}, ${cfg.mg.y})</div>
+    <div style="font-size:8px;color:#aa5555;margin-top:5px">📍 click to move</div>
+  `;
+  fortress.title = 'Click to change anchor coordinates';
+  fortress.style.cursor = 'pointer';
+  fortress.addEventListener('click', () => document.getElementById('btn-set-mg').click());
+  canvas.appendChild(fortress);
+
+  // Ring labels in the four corners outside Ring 4
+  const ringClr = ['#ff7777','#cc9966','#88aacc','#66cc88'];
+  for(let r = 1; r <= maxRings; r++){
+    const rOuter = half + (r - 1) * ringPitch + (member - 1);
+    const lbl = document.createElement('div');
+    lbl.className = 'sh-ringbadge';
+    lbl.textContent = `R${r}`;
+    lbl.style.left = px(-rOuter - 2) + 'px';
+    lbl.style.top  = px(-rOuter - 1) + 'px';
+    lbl.style.color = ringClr[r-1] || '#888';
+    canvas.appendChild(lbl);
+  }
+
+  // Slots
+  for(const s of strongholdSlots){
+    const {tx, ty, ring} = s;
+    const key  = `${tx},${ty}`;
+    const name = cfg.assignments[key] || null;
+    const div  = document.createElement('div');
+    div.className = `sh-slot r-${ring}` + (name ? '' : ' empty');
+    div.dataset.key = key;
+    div.dataset.ring = ring;
+    div.style.left   = px(tx) + 'px';
+    div.style.top    = px(ty) + 'px';
+    div.style.width  = (member * SH_TILE_PX) + 'px';
+    div.style.height = (member * SH_TILE_PX) + 'px';
+
+    if(name){
+      const m  = cfg.members[name] || {};
+      const c  = clr(m.rank || '');
+      const [wx, wy] = cellCoord(tx, ty);
+      div.style.background = `linear-gradient(135deg, ${c}33, ${c}10)`;
+      div.style.borderColor = c + 'aa';
+      div.innerHTML = `
+        <div class="sh-name" style="color:${c}">${name}</div>
+        <div class="sh-rk"   style="color:${c}">${m.rank||'?'}/${m.hq!=null?'HQ'+m.hq:'—'}</div>
+        <div class="sh-coord">${wx},${wy}</div>
+      `;
+      div.title = `${name} · ${m.rank||'?'} · HQ ${m.hq||'?'} · ${m.power||'—'} · Ring ${ring} · tile (${wx},${wy})`;
+      div.addEventListener('click', () => {
+        if(selectedNames.size > 0){ selectedNames.clear(); lastRosterIdx = -1; updateSelectionUI(); }
+        else openModal(key);
+      });
+    } else {
+      div.innerHTML = `<div style="color:#3a3a55;font-size:8px">R${ring}</div>`;
+      div.title = `Ring ${ring} slot · empty (click to place)`;
+      div.addEventListener('click', () => {
+        if(selectedNames.size > 0) placeSelected(tx, ty);
+        else openModal(key);
+      });
+    }
+    setupDrag(div, key, false, !!name);
+    canvas.appendChild(div);
+  }
+}
+
+function renderGridMG(){
   const table = document.getElementById('grid-table');
   const {cols,rows,mg_col,mg_row} = cfg.grid;
   table.innerHTML='';
@@ -691,23 +898,33 @@ function updateSelectionUI(){
 }
 
 async function placeSelected(startCol, startRow){
-  const mc = cfg.grid.mg_col, mr = cfg.grid.mg_row;
-  // Collect empty cells sorted by distance from clicked cell (Chebyshev), then angle
-  const emptyCells = [];
-  for(let c=0; c<cfg.grid.cols; c++){
-    for(let r=0; r<cfg.grid.rows; r++){
-      const k = `${c},${r}`;
-      if(c===mc && r===mr) continue;
+  let candidates = [];
+  if(isStronghold()){
+    if(!strongholdSlots) await loadStrongholdSlots();
+    for(const s of (strongholdSlots || [])){
+      const k = `${s.tx},${s.ty}`;
       if(cfg.assignments[k]) continue;
-      const dist = Math.max(Math.abs(c-startCol), Math.abs(r-startRow));
-      emptyCells.push({c, r, dist, angle: Math.atan2(c-startCol, -(r-startRow))});
+      const dist = Math.max(Math.abs(s.tx - startCol), Math.abs(s.ty - startRow));
+      candidates.push({c: s.tx, r: s.ty, dist, ring: s.ring, angle: Math.atan2(s.tx - startCol, -(s.ty - startRow))});
     }
+    candidates.sort((a,b) => a.dist - b.dist || a.ring - b.ring || a.angle - b.angle);
+  } else {
+    const mc = cfg.grid.mg_col, mr = cfg.grid.mg_row;
+    for(let c=0; c<cfg.grid.cols; c++){
+      for(let r=0; r<cfg.grid.rows; r++){
+        const k = `${c},${r}`;
+        if(c===mc && r===mr) continue;
+        if(cfg.assignments[k]) continue;
+        const dist = Math.max(Math.abs(c-startCol), Math.abs(r-startRow));
+        candidates.push({c, r, dist, angle: Math.atan2(c-startCol, -(r-startRow))});
+      }
+    }
+    candidates.sort((a,b) => a.dist - b.dist || a.angle - b.angle);
   }
-  emptyCells.sort((a,b) => a.dist-b.dist || a.angle-b.angle);
 
   const names = [...selectedNames];
-  const cells = emptyCells.slice(0, names.length);
-  if(cells.length === 0){ toast('No empty cells nearby', true); return; }
+  const cells = candidates.slice(0, names.length);
+  if(cells.length === 0){ toast('No empty slots nearby', true); return; }
 
   let placed = 0;
   for(let i=0; i<Math.min(names.length, cells.length); i++){
@@ -929,11 +1146,20 @@ function renderMeta(){
   const warn = needsData > 0
     ? ` &nbsp;│&nbsp; <span style="color:#aa6600">⚠ ${needsData} members missing HQ/Power — click their cell to fill in</span>`
     : '';
-  document.getElementById('meta').innerHTML =
-    `MG @ (${cfg.mg.x},${cfg.mg.y}) &nbsp;│&nbsp; Grid: ${g.cols}×${g.rows} &nbsp;│&nbsp; ` +
-    `Step: ${g.step} tiles per grid &nbsp;│&nbsp; Members: ${total} total, ${assigned} placed` +
-    warn +
-    ` &nbsp;│&nbsp; <em>Click cell to edit · Drag to move · Auto-saves JSON + CSV</em>`;
+  if(isStronghold()){
+    const slots = strongholdSlots ? strongholdSlots.length : '?';
+    document.getElementById('meta').innerHTML =
+      `🏰 Stronghold centre @ (${cfg.mg.x},${cfg.mg.y}) &nbsp;│&nbsp; ` +
+      `21×21 tile fortress &nbsp;│&nbsp; 4 rings &nbsp;│&nbsp; ${slots} slots (2-tile gaps) &nbsp;│&nbsp; ` +
+      `Members: ${total} total, ${assigned} placed` + warn +
+      ` &nbsp;│&nbsp; <em>Ring 1 = strongest, against the mud</em>`;
+  } else {
+    document.getElementById('meta').innerHTML =
+      `⚑ MG @ (${cfg.mg.x},${cfg.mg.y}) &nbsp;│&nbsp; Grid: ${g.cols}×${g.rows} &nbsp;│&nbsp; ` +
+      `Step: ${g.step} tiles per cell &nbsp;│&nbsp; Members: ${total} total, ${assigned} placed` +
+      warn +
+      ` &nbsp;│&nbsp; <em>Click cell to edit · Drag to move · Auto-saves JSON + CSV</em>`;
+  }
 }
 
 // ── Toast ──────────────────────────────────────────────────────────────────────
@@ -956,7 +1182,36 @@ function renderAll(){
   // Sync alliance name input
   const inp = document.getElementById('alliance-name-input');
   if(document.activeElement !== inp) inp.value = cfg.alliance_name || '';
+  // Sync layout dropdown
+  const lm = document.getElementById('layout-mode');
+  if(lm && cfg.layout && cfg.layout.mode && lm.value !== cfg.layout.mode){
+    lm.value = cfg.layout.mode;
+  }
 }
+
+// ── Layout-mode dropdown handler ───────────────────────────────────────────────
+document.getElementById('layout-mode').addEventListener('change', async (e) => {
+  const mode = e.target.value;
+  if(!confirm(
+      mode === 'stronghold'
+        ? 'Switch to Military Stronghold formation?\n\nThis clears all current grid placements (they don\'t map between formations) — your member list and stats are preserved. You can re-run ⚡ Auto-Assign afterward.'
+        : 'Switch back to Marshall\'s Guard formation?\n\nThis clears all current grid placements.'
+  )){
+    // Reset dropdown to current mode
+    e.target.value = cfg.layout?.mode || 'mg';
+    return;
+  }
+  const d = await api('/api/set-layout', {mode});
+  if(d.ok){
+    cfg = d.config;
+    if(mode === 'stronghold' && !strongholdSlots) await loadStrongholdSlots();
+    renderAll();
+    toast(`Switched to ${cfg.layout.label}${d.evicted ? ` — ${d.evicted} placements cleared` : ''}`);
+  } else {
+    toast(d.error || 'Switch failed', true);
+    e.target.value = cfg.layout?.mode || 'mg';
+  }
+});
 
 // ── Auto-assign button ──────────────────────────────────────────────────────────
 document.getElementById('btn-auto-assign').onclick = async () => {
@@ -1299,6 +1554,7 @@ document.getElementById('btn-fb-submit').onclick = async () => {
 (async function init(){
   try {
     cfg = await fetch('/api/config').then(r=>r.json());
+    if(cfg.layout && cfg.layout.use_tile_coords) await loadStrongholdSlots();
     renderAll();
   } catch(e) {
     document.body.innerHTML = `
