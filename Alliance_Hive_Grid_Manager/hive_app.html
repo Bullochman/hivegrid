@@ -266,6 +266,13 @@ select.inline-edit{width:auto;min-width:50px}
   </div>
 </div>
 
+<!-- Season 2 hero (dismissible) -->
+<div id="s2-hero" style="display:none;margin:14px 0 18px;padding:14px 18px;background:linear-gradient(135deg,#0f0a1e,#1a0a2e);border:1px solid #4a2a66;border-radius:8px;position:relative;font-size:12px;line-height:1.55;color:#c0a0e0">
+  <button id="s2-dismiss" style="position:absolute;top:6px;right:8px;background:transparent;border:none;color:#664488;font-size:10px;font-family:'Courier New',monospace;cursor:pointer;padding:2px 6px;letter-spacing:.3px" data-i18n="s2_dismiss">✕ dismiss</button>
+  <div style="font-weight:bold;color:#ffbb44;letter-spacing:.5px;font-size:11px;margin-bottom:6px" data-i18n="s2_heading">⏳ WHY THIS MATTERS FOR SEASON 2</div>
+  <div data-i18n="s2_body" data-i18n-mode="html"></div>
+</div>
+
 <div class="legend" id="legend"></div>
 
 <div id="watermark-bar" class="watermark-bar">
@@ -665,6 +672,10 @@ const I18N = {
     png_credit:               'Alliance Hive Grid Tool',
     png_watermark:            'hivegrid.io',
     png_free_footer:          'Free version · hivegrid.io · Unlock at $10 one-time',
+    // Season 2 hero
+    s2_heading:               '⏳ WHY THIS MATTERS FOR SEASON 2',
+    s2_body:                  '<strong>Season 2 rewards alliances that land together.</strong> Every teleport needs a coordinate — argue about placement in the moment and half your alliance ends up scattered outside the Alliance Furnace, freezing, and unable to rally. Pre-plan every member\'s spot now, export a PNG, drop it in your Discord — everyone teleports to their assigned coord on day 1 and your hive is locked in before enemies can wedge a 3×3 city between you.',
+    s2_dismiss:               '✕ dismiss',
     // Language toggle
     lang_toggle_label:        '한국어',
     lang_toggle_title:        'Switch to Korean',
@@ -861,6 +872,9 @@ const I18N = {
     png_credit:               '연맹 벌집 배치도',
     png_watermark:            'hivegrid.io',
     png_free_footer:          '무료 버전 · hivegrid.io · $10로 잠금해제',
+    s2_heading:               '⏳ 시즌2에 왜 필요한가',
+    s2_body:                  '<strong>시즌2는 같이 착지하는 연맹에게 유리합니다.</strong> 텔레포트마다 좌표가 필요한데, 착지 순간에 배치를 논의하면 절반은 연맹 화로 밖에 흩어져서 얼어붙고 집결도 못 합니다. 지금 미리 연맹원 전원의 자리를 정해두고, PNG로 내보내서 디스코드/카톡에 올리면 — 첫날 각자 지정된 좌표로 텔레포트, 적이 3×3 도시를 사이에 못 끼워 넣기 전에 벌집이 완성됩니다.',
+    s2_dismiss:               '✕ 닫기',
     lang_toggle_label:        'EN',
     lang_toggle_title:        'Switch to English',
   }
@@ -2012,6 +2026,17 @@ document.getElementById('btn-fb-submit').onclick = async () => {
 document.getElementById('lang-toggle').addEventListener('click', () => {
   setLang(LANG === 'en' ? 'ko' : 'en');
 });
+
+// ── Season 2 hero (dismissible, persists via localStorage) ─────────────────────
+(function initS2Hero(){
+  const hero = document.getElementById('s2-hero');
+  const dismissed = localStorage.getItem('hiveS2HeroDismissed') === '1';
+  if(hero && !dismissed) hero.style.display = 'block';
+  document.getElementById('s2-dismiss')?.addEventListener('click', () => {
+    hero.style.display = 'none';
+    localStorage.setItem('hiveS2HeroDismissed', '1');
+  });
+})();
 
 // Apply translations on first paint (before /api/config returns)
 applyI18n();
