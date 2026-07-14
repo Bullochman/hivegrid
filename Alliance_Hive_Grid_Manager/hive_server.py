@@ -61,19 +61,31 @@ def _record_visit(ip: str, lang: str, accept_lang: str = ""):
     """Record a page load. Hashes the IP for privacy."""
     s = _load_stats()
     from datetime import datetime, timezone
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    now_utc = datetime.now(timezone.utc)
+    today = now_utc.strftime("%Y-%m-%d")
     day = s["days"].setdefault(today, {"loads": 0, "unique_ips": [], "langs": {}, "accept_langs": {}})
     day["loads"] += 1
     ip_hash = hashlib.sha256(ip.encode()).hexdigest()[:12]
     if ip_hash not in day["unique_ips"]:
         day["unique_ips"].append(ip_hash)
     day["langs"][lang] = day["langs"].get(lang, 0) + 1
+    primary = ""
     if accept_lang:
         # Bucket by primary language tag (e.g. ko-KR → ko)
         primary = accept_lang.split(",")[0].split("-")[0].lower().strip()
         if primary:
             day["accept_langs"][primary] = day["accept_langs"].get(primary, 0) + 1
     s["total_loads"] += 1
+    # Rolling per-visit log — last 500 visits with timestamp + language.
+    # No IP or IP hash stored here (user wanted "time and day, not by who").
+    recent = s.setdefault("recent", [])
+    recent.append({
+        "ts":  now_utc.isoformat(timespec="seconds"),
+        "lang": lang,
+        "browser_lang": primary,
+    })
+    if len(recent) > 500:
+        del recent[:-500]
     # Trim to last 30 days
     if len(s["days"]) > 30:
         for k in sorted(s["days"].keys())[:-30]:
@@ -537,7 +549,7 @@ class Handler(BaseHTTPRequestHandler):
         elif self.path == "/api/config":
             self._send_json(load_cfg())
 
-        elif self.path == "/api/stats":
+        elif self.path == "/api/stats" or self.path.startswith("/api/stats?"):
             # Public-safe analytics endpoint — shows aggregate counts, no raw IPs.
             s = _load_stats()
             days_out = {}
@@ -548,11 +560,66 @@ class Handler(BaseHTTPRequestHandler):
                     "langs":        d["langs"],
                     "accept_langs": d["accept_langs"],
                 }
+            # Recent visits — most recent first
+            recent = list(reversed(s.get("recent", [])))[:100]
             self._send_json({
                 "ok":          True,
                 "total_loads": s["total_loads"],
                 "days":        days_out,
+                "recent":      recent,
             })
+
+        elif self.path == "/stats" or self.path == "/stats.html":
+            # Human-readable stats page — bookmark this in your browser.
+            s = _load_stats()
+            from datetime import datetime, timezone, timedelta
+            local_tz = timezone(timedelta(hours=-5))  # US Central approximation
+            recent = list(reversed(s.get("recent", [])))
+            rows = []
+            for v in recent[:100]:
+                try:
+                    ts_utc = datetime.fromisoformat(v["ts"])
+                    ts_local = ts_utc.astimezone(local_tz)
+                    when = ts_local.strftime("%a %b %d · %I:%M:%S %p")
+                except Exception:
+                    when = v.get("ts", "?")
+                lang = v.get("lang", "?")
+                blang = v.get("browser_lang", "")
+                flag = "🇰🇷" if lang == "ko" else ("🇺🇸" if lang == "en" else "🌐")
+                rows.append(f"<tr><td>{when}</td><td style='text-align:center'>{flag}</td><td>{lang.upper()}</td><td style='color:#666'>{blang}</td></tr>")
+            per_day = []
+            for date, d in sorted(s["days"].items(), reverse=True):
+                langs_str = " · ".join(f"{k}:{v}" for k, v in sorted(d["langs"].items(), key=lambda x: -x[1]))
+                per_day.append(f"<tr><td>{date}</td><td>{d['loads']}</td><td>{len(d['unique_ips'])}</td><td>{langs_str}</td></tr>")
+            html = f"""<!DOCTYPE html><html><head><meta charset='utf-8'><title>Hive Grid — Access Log</title>
+<style>
+  body{{background:#0d0d1a;color:#c0c0d0;font-family:'Courier New',monospace;padding:24px;line-height:1.5}}
+  h1{{color:#fff;font-size:18px;letter-spacing:.5px;margin-bottom:6px}}
+  h2{{color:#9999cc;font-size:13px;margin:24px 0 10px;letter-spacing:.5px}}
+  .totals{{color:#ffdd88;font-size:14px;margin-bottom:14px}}
+  table{{border-collapse:collapse;width:100%;max-width:720px;font-size:12px}}
+  th{{color:#55557a;text-align:left;padding:6px 12px;border-bottom:1px solid #252540;font-weight:normal;font-size:10px;letter-spacing:.5px}}
+  td{{padding:5px 12px;border-bottom:1px solid #0e0e1e}}
+  .hint{{color:#44445a;font-size:11px;margin-top:14px}}
+</style></head><body>
+<h1>◈ ALLIANCE HIVE GRID — ACCESS LOG ◈</h1>
+<div class='totals'>{s['total_loads']} total loads · {len(s['days'])} days of history · auto-refresh: <a href='#' onclick='location.reload();return false' style='color:#88ccff'>reload</a></div>
+<h2>▸ RECENT VISITS (last 100, newest first, times in US Central)</h2>
+<table><thead><tr><th>WHEN</th><th></th><th>UI LANG</th><th>BROWSER LANG</th></tr></thead><tbody>
+{''.join(rows) if rows else '<tr><td colspan=4 style="color:#666">No visits yet.</td></tr>'}
+</tbody></table>
+<h2>▸ PER-DAY SUMMARY</h2>
+<table><thead><tr><th>DATE</th><th>LOADS</th><th>UNIQUE IPS</th><th>LANGUAGE BREAKDOWN</th></tr></thead><tbody>
+{''.join(per_day) if per_day else '<tr><td colspan=4 style="color:#666">No data.</td></tr>'}
+</tbody></table>
+<div class='hint'>Bookmark this page: <a href='/stats' style='color:#88ccff'>/stats</a> · JSON version at <a href='/api/stats' style='color:#88ccff'>/api/stats</a></div>
+</body></html>"""
+            body = html.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", len(body))
+            self.end_headers()
+            self.wfile.write(body)
 
         elif self.path == "/api/stronghold-slots":
             slots = stronghold_slot_list()
