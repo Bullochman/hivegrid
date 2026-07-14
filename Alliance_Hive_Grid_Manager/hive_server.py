@@ -589,7 +589,12 @@ class Handler(BaseHTTPRequestHandler):
         elif self.path == "/api/unlock":
             key = (data.get("key") or "").strip().upper()
             valid_keys = load_keys()
-            valid_keys.add("HIVE-DEMO-2026")   # demo key stays hardcoded, not in file
+            # Admin escape hatch: env var lets you set a private demo key without
+            # exposing it in source. Set HIVE_DEMO_KEY on the Railway service to
+            # enable a working key without going through Stripe.
+            demo = (os.environ.get("HIVE_DEMO_KEY") or "").strip().upper()
+            if demo:
+                valid_keys.add(demo)
             if key in valid_keys:
                 cfg["unlocked"] = True
                 save_cfg(cfg)
