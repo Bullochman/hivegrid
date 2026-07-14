@@ -217,36 +217,37 @@ select.inline-edit{width:auto;min-width:50px}
 </head>
 <body>
 
-<header>
-  <h1>◈ LAST WAR SURVIVAL — ALLIANCE HIVE GRID ◈</h1>
+<header style="position:relative">
+  <button id="lang-toggle" title="Switch to Korean" style="position:absolute;top:0;right:0;background:#0a0a14;border:1px solid #444488;color:#8888cc;font-family:'Courier New',monospace;font-size:11px;letter-spacing:.5px;border-radius:14px;padding:4px 12px;cursor:pointer;transition:border-color .12s,color .12s">한국어</button>
+  <h1 data-i18n="title">◈ LAST WAR SURVIVAL — ALLIANCE HIVE GRID ◈</h1>
   <div class="alliance-name-wrap">
-    <span class="alliance-label">ALLIANCE</span>
-    <input id="alliance-name-input" type="text" maxlength="40" placeholder="Enter alliance name…" title="Your alliance name — appears in PNG exports">
-    <span style="color:#44445a;font-size:10px">← shown in PNG exports</span>
+    <span class="alliance-label" data-i18n="alliance_label">ALLIANCE</span>
+    <input id="alliance-name-input" type="text" maxlength="40" data-i18n-placeholder="alliance_placeholder" data-i18n-title="alliance_title" placeholder="Enter alliance name…" title="Your alliance name — appears in PNG exports">
+    <span style="color:#44445a;font-size:10px" data-i18n="alliance_hint">← shown in PNG exports</span>
   </div>
-  <div class="meta" id="meta">Connecting to server…</div>
+  <div class="meta" id="meta" data-i18n="connecting">Connecting to server…</div>
   <div class="toolbar">
-    <label style="color:#6666aa;font-size:11px;display:inline-flex;align-items:center;gap:4px;letter-spacing:.5px">FORMATION
-      <select id="layout-mode" title="Switch between Marshall's Guard event (3×3) and Military Stronghold (21×21, 2-tile spacing, 4 rings)">
-        <option value="mg">⚑ Marshall's Guard (3×3, no gaps)</option>
-        <option value="stronghold">🏰 Military Stronghold (21×21, 2-tile gaps)</option>
+    <label style="color:#6666aa;font-size:11px;display:inline-flex;align-items:center;gap:4px;letter-spacing:.5px"><span data-i18n="formation">FORMATION</span>
+      <select id="layout-mode" data-i18n-title="formation_title" title="Switch between Marshall's Guard event (3×3) and Military Stronghold (21×21, 2-tile spacing, 4 rings)">
+        <option value="mg" data-i18n="fm_mg">⚑ Marshall's Guard (3×3, no gaps)</option>
+        <option value="stronghold" data-i18n="fm_sh">🏰 Military Stronghold (21×21, 2-tile gaps)</option>
       </select>
     </label>
-    <button class="btn-auto"   id="btn-auto-assign"  title="Auto-assign members to grid cells">⚡ Auto-Assign</button>
-    <select id="auto-sort-mode" title="Priority order for auto-assign" style="background:#0a0a14;border:1px solid #33aa33;color:#88ff88;font-family:'Courier New',monospace;font-size:11px;border-radius:4px;padding:4px 8px;cursor:pointer">
-      <option value="rank,power">Rank → Power</option>
-      <option value="rank,hq,power">Rank → HQ → Power</option>
-      <option value="hq,power">HQ Level → Power</option>
-      <option value="power">Power only</option>
-      <option value="hq">HQ Level only</option>
-      <option value="rank,hq">Rank → HQ Level</option>
+    <button class="btn-auto"   id="btn-auto-assign"  data-i18n="btn_auto" data-i18n-title="btn_auto_title" title="Auto-assign members to grid cells">⚡ Auto-Assign</button>
+    <select id="auto-sort-mode" data-i18n-title="sort_title" title="Priority order for auto-assign" style="background:#0a0a14;border:1px solid #33aa33;color:#88ff88;font-family:'Courier New',monospace;font-size:11px;border-radius:4px;padding:4px 8px;cursor:pointer">
+      <option value="rank,power" data-i18n="sort_rank_power">Rank → Power</option>
+      <option value="rank,hq,power" data-i18n="sort_rank_hq_power">Rank → HQ → Power</option>
+      <option value="hq,power" data-i18n="sort_hq_power">HQ Level → Power</option>
+      <option value="power" data-i18n="sort_power">Power only</option>
+      <option value="hq" data-i18n="sort_hq">HQ Level only</option>
+      <option value="rank,hq" data-i18n="sort_rank_hq">Rank → HQ Level</option>
     </select>
-    <button class="btn-upload" id="btn-csv-upload"   title="Upload a CSV to update member data">📂 Upload CSV</button>
-    <button class="btn-upload" id="btn-dl-template"  title="Download current roster as CSV" style="background:#0a1a2a;border-color:#225588;color:#55aadd">⬇ CSV</button>
-    <button class="btn-mg"     id="btn-set-mg"       title="Change the MG anchor coordinates">📍 Set MG Coords</button>
-    <button class="btn-clear"  id="btn-clear-grid"   title="Unassign everyone — keep member list">🗑 Clear Grid</button>
-    <button class="btn-danger" id="btn-clear-all"    title="Wipe everything and start fresh">💥 Reset All</button>
-    <button class="btn-export" id="btn-export-png"   title="Export grid as PNG image for Discord/WhatsApp">📸 Export PNG</button>
+    <button class="btn-upload" id="btn-csv-upload"   data-i18n="btn_csv_up" data-i18n-title="btn_csv_up_title" title="Upload a CSV to update member data">📂 Upload CSV</button>
+    <button class="btn-upload" id="btn-dl-template"  data-i18n="btn_csv_dl" data-i18n-title="btn_csv_dl_title" title="Download current roster as CSV" style="background:#0a1a2a;border-color:#225588;color:#55aadd">⬇ CSV</button>
+    <button class="btn-mg"     id="btn-set-mg"       data-i18n="btn_set_mg" data-i18n-title="btn_set_mg_title" title="Change the MG anchor coordinates">📍 Set MG Coords</button>
+    <button class="btn-clear"  id="btn-clear-grid"   data-i18n="btn_clear_grid" data-i18n-title="btn_clear_grid_title" title="Unassign everyone — keep member list">🗑 Clear Grid</button>
+    <button class="btn-danger" id="btn-clear-all"    data-i18n="btn_reset_all" data-i18n-title="btn_reset_all_title" title="Wipe everything and start fresh">💥 Reset All</button>
+    <button class="btn-export" id="btn-export-png"   data-i18n="btn_export_png" data-i18n-title="btn_export_png_title" title="Export grid as PNG image for Discord/WhatsApp">📸 Export PNG</button>
     <input type="file" id="csv-file-input" accept=".csv" style="display:none">
   </div>
 </header>
@@ -254,13 +255,13 @@ select.inline-edit{width:auto;min-width:50px}
 <!-- Set MG modal -->
 <div class="modal-backdrop" id="mg-modal" style="display:none">
   <div class="modal">
-    <h3 style="margin-bottom:14px;color:#fff">📍 Set Marshall's Guard Coordinates</h3>
-    <label>MG Game X<input id="mg-x" type="number" style="margin-left:10px;width:90px;background:#111;color:#eee;border:1px solid #444;padding:4px 8px;border-radius:4px"></label><br><br>
-    <label>MG Game Y<input id="mg-y" type="number" style="margin-left:10px;width:90px;background:#111;color:#eee;border:1px solid #444;padding:4px 8px;border-radius:4px"></label>
-    <p style="color:#888;font-size:11px;margin-top:10px">Grid step is 3 tiles per cell. Changing this shifts all coordinate labels.</p>
+    <h3 style="margin-bottom:14px;color:#fff" data-i18n="mg_modal_title">📍 Set Marshall's Guard Coordinates</h3>
+    <label><span data-i18n="mg_game_x">MG Game X</span><input id="mg-x" type="number" style="margin-left:10px;width:90px;background:#111;color:#eee;border:1px solid #444;padding:4px 8px;border-radius:4px"></label><br><br>
+    <label><span data-i18n="mg_game_y">MG Game Y</span><input id="mg-y" type="number" style="margin-left:10px;width:90px;background:#111;color:#eee;border:1px solid #444;padding:4px 8px;border-radius:4px"></label>
+    <p style="color:#888;font-size:11px;margin-top:10px" data-i18n="mg_modal_hint">Grid step is 3 tiles per cell. Changing this shifts all coordinate labels.</p>
     <div style="margin-top:16px;display:flex;gap:8px">
-      <button class="btn-save" id="btn-mg-save">💾 Save</button>
-      <button class="btn-cancel" id="btn-mg-cancel">Cancel</button>
+      <button class="btn-save" id="btn-mg-save" data-i18n="btn_save">💾 Save</button>
+      <button class="btn-cancel" id="btn-mg-cancel" data-i18n="btn_cancel">Cancel</button>
     </div>
   </div>
 </div>
@@ -278,7 +279,7 @@ select.inline-edit{width:auto;min-width:50px}
 
 <!-- Stronghold canvas (shown only when Military Stronghold layout is active) -->
 <div class="sh-wrap" id="stronghold-wrap">
-  <div style="color:#cc6666;font-size:11px;margin-bottom:10px;letter-spacing:.4px">
+  <div style="color:#cc6666;font-size:11px;margin-bottom:10px;letter-spacing:.4px" data-i18n="sh_banner" data-i18n-mode="html">
     🏰 <strong>MILITARY STRONGHOLD</strong> &nbsp;·&nbsp; 21×21 tile fortress &nbsp;·&nbsp;
     Each alliance member = 3×3 tiles, 2-tile gap between every member &nbsp;·&nbsp;
     <span style="color:#ff8888">Ring 1 = strongest (against the mud)</span>
@@ -288,22 +289,22 @@ select.inline-edit{width:auto;min-width:50px}
 
 <div class="roster-pay-row">
 <div class="roster-section">
-  <h2>▸ MEMBER ROSTER <span id="roster-count" style="color:#444466;font-weight:normal;font-size:11px;margin-left:8px"></span></h2>
+  <h2><span data-i18n="roster_heading">▸ MEMBER ROSTER</span> <span id="roster-count" style="color:#444466;font-weight:normal;font-size:11px;margin-left:8px"></span></h2>
   <div class="sort-bar">
-    Sort by:
-    <button class="btn-sort active" data-sort="ring">📍 Ring</button>
-    <button class="btn-sort" data-sort="rank">🏅 Rank</button>
-    <button class="btn-sort" data-sort="power">⚡ Power</button>
-    <button class="btn-sort" data-sort="name">🔤 Name</button>
-    <span style="margin-left:8px;color:#333350">— click Rank/HQ/Power/Notes cells below to edit inline</span>
+    <span data-i18n="sort_by">Sort by:</span>
+    <button class="btn-sort active" data-sort="ring" data-i18n="sort_ring">📍 Ring</button>
+    <button class="btn-sort" data-sort="rank" data-i18n="sort_rank">🏅 Rank</button>
+    <button class="btn-sort" data-sort="power" data-i18n="sort_power_short">⚡ Power</button>
+    <button class="btn-sort" data-sort="name" data-i18n="sort_name">🔤 Name</button>
+    <span style="margin-left:8px;color:#333350" data-i18n="sort_hint">— click Rank/HQ/Power/Notes cells below to edit inline</span>
   </div>
   <div id="selection-bar" style="display:none">
     <span id="selection-msg"></span>
-    <button id="btn-clear-sel">✕ Clear (Esc)</button>
+    <button id="btn-clear-sel" data-i18n="sel_clear">✕ Clear (Esc)</button>
   </div>
   <table class="roster">
     <thead><tr>
-      <th class="col-num">#</th><th>NAME</th><th>RANK</th><th>HQ LV.</th><th>POWER</th><th>COORD</th><th>RING</th><th>NOTES</th>
+      <th class="col-num" data-i18n="col_num">#</th><th data-i18n="col_name">NAME</th><th data-i18n="col_rank">RANK</th><th data-i18n="col_hq">HQ LV.</th><th data-i18n="col_power">POWER</th><th data-i18n="col_coord">COORD</th><th data-i18n="col_ring">RING</th><th data-i18n="col_notes">NOTES</th>
     </tr></thead>
     <tbody id="roster-body"></tbody>
   </table>
@@ -312,17 +313,17 @@ select.inline-edit{width:auto;min-width:50px}
 <!-- Edit / Add Modal -->
 <div class="overlay" id="overlay">
   <div class="modal">
-    <h3 id="modal-title">Edit Member</h3>
+    <h3 id="modal-title" data-i18n="modal_edit_member">Edit Member</h3>
     <div class="coord-label" id="modal-coord"></div>
     <div class="field">
-      <label>PLAYER NAME</label>
-      <input id="f-name" type="text" placeholder="Enter name…" autocomplete="off">
+      <label data-i18n="field_player_name">PLAYER NAME</label>
+      <input id="f-name" type="text" data-i18n-placeholder="field_name_placeholder" placeholder="Enter name…" autocomplete="off">
     </div>
     <div class="field">
-      <label>RANK</label>
+      <label data-i18n="field_rank">RANK</label>
       <select id="f-rank">
-        <option value="">— Unknown —</option>
-        <option value="R5">R5  (Leader)</option>
+        <option value="" data-i18n="rank_unknown">— Unknown —</option>
+        <option value="R5" data-i18n="rank_r5_leader">R5  (Leader)</option>
         <option value="R4">R4</option>
         <option value="R3">R3</option>
         <option value="R2">R2</option>
@@ -330,22 +331,22 @@ select.inline-edit{width:auto;min-width:50px}
       </select>
     </div>
     <div class="field">
-      <label>HQ LEVEL</label>
-      <input id="f-hq" type="number" min="1" max="30" placeholder="e.g. 25">
+      <label data-i18n="field_hq">HQ LEVEL</label>
+      <input id="f-hq" type="number" min="1" max="30" data-i18n-placeholder="field_hq_placeholder" placeholder="e.g. 25">
     </div>
     <div class="field">
-      <label>TOTAL POWER</label>
-      <input id="f-power" type="text" placeholder="e.g. 45.2M">
+      <label data-i18n="field_power">TOTAL POWER</label>
+      <input id="f-power" type="text" data-i18n-placeholder="field_power_placeholder" placeholder="e.g. 45.2M">
     </div>
     <div class="field">
-      <label>NOTES</label>
-      <input id="f-notes" type="text" placeholder="Optional…">
+      <label data-i18n="field_notes">NOTES</label>
+      <input id="f-notes" type="text" data-i18n-placeholder="field_notes_placeholder" placeholder="Optional…">
     </div>
     <div class="modal-actions">
-      <button class="btn-save"     id="btn-save">💾 Save</button>
-      <button class="btn-unassign" id="btn-unassign" style="display:none">↩ Unassign</button>
-      <button class="btn-delete"   id="btn-delete"   style="display:none">🗑 Delete</button>
-      <button class="btn-cancel"   id="btn-cancel">Cancel</button>
+      <button class="btn-save"     id="btn-save" data-i18n="btn_save">💾 Save</button>
+      <button class="btn-unassign" id="btn-unassign" style="display:none" data-i18n="btn_unassign">↩ Unassign</button>
+      <button class="btn-delete"   id="btn-delete"   style="display:none" data-i18n="btn_delete">🗑 Delete</button>
+      <button class="btn-cancel"   id="btn-cancel" data-i18n="btn_cancel">Cancel</button>
     </div>
   </div>
 </div>
@@ -355,28 +356,34 @@ select.inline-edit{width:auto;min-width:50px}
 
   <!-- Unlock full version -->
   <div class="tip-box" style="border-color:#2a2a55">
-    <h3>🔓 UNLOCK FULL VERSION — $10 ONE-TIME</h3>
-    <p>Your grid, your alliance, your image. The free version is fully functional — auto-assign, drag-and-drop, CSV import, PNG export, everything. The $10 unlock removes the watermark from every PNG you export, so the screenshot you drop in Discord looks clean and professional. One-time payment. No subscription, no renewal, no account. Pay via Stripe, get your key by email instantly, paste it in and you're done.</p>
-    <a class="btn-unlock" href="https://buy.stripe.com/cNieVc8g14zj2M67pQ6c000" target="_blank" rel="noopener">
+    <h3 data-i18n="unlock_heading">🔓 UNLOCK FULL VERSION — $10 ONE-TIME</h3>
+    <p data-i18n="unlock_body">Your grid, your alliance, your image. The free version is fully functional — auto-assign, drag-and-drop, CSV import, PNG export, everything. The $10 unlock removes the watermark from every PNG you export, so the screenshot you drop in Discord looks clean and professional. One-time payment. No subscription, no renewal, no account. Pay via Stripe, get your key by email instantly, paste it in and you're done.</p>
+    <a class="btn-unlock" id="btn-unlock-buy" href="https://buy.stripe.com/cNieVc8g14zj2M67pQ6c000?client_reference_id=en" target="_blank" rel="noopener" data-i18n="unlock_btn">
       💳 Get Your Key — $10
     </a>
-    <p style="color:#333355;font-size:10px">Secure checkout via Stripe · Apple Pay &amp; card accepted · Instant key delivery by email</p>
+    <p style="color:#333355;font-size:10px" data-i18n="unlock_footnote" data-i18n-mode="html">Secure checkout via Stripe · Apple Pay &amp; card accepted · Instant key delivery by email</p>
     <div class="unlock-row">
-      <input id="unlock-key-input" type="text" placeholder="Paste your key here…" autocomplete="off">
-      <button class="btn-save" id="btn-unlock-key" style="padding:6px 12px;font-size:11px">Unlock</button>
+      <input id="unlock-key-input" type="text" data-i18n-placeholder="unlock_placeholder" placeholder="Paste your key here…" autocomplete="off">
+      <button class="btn-save" id="btn-unlock-key" style="padding:6px 12px;font-size:11px" data-i18n="unlock_btn_apply">Unlock</button>
     </div>
     <div id="unlock-status"></div>
   </div>
 
+  <!-- Snagit / scrolling screenshot recommendation -->
+  <div class="tip-box" style="border-color:#223344">
+    <h3 data-i18n="snagit_heading">📸 CAPTURE THE WHOLE GAME SCREEN</h3>
+    <p data-i18n="snagit_body" data-i18n-mode="html">When you're gathering member names and stats from your in-game roster, a <strong>scrolling screenshot tool</strong> like <a href="https://www.techsmith.com/snagit.html" target="_blank" rel="noopener" style="color:#88ccff">Snagit</a> (Mac + Windows, ~$63 one-time) captures the entire alliance list in a single image instead of stitching together 6 screenshots. Pair it with this tool for a 5-minute alliance-wide setup. Free alternatives: <strong>ShareX</strong> (Windows), <strong>CleanShot X</strong> (Mac, has scrolling capture).</p>
+  </div>
+
   <!-- Tip jar -->
   <div class="tip-box" style="text-align:center">
-    <h3>☕ TIP THE DEV</h3>
-    <p style="margin-bottom:10px">Saved you hours of chaos?<br>Buy me a coffee — or flex your whale status.</p>
-    <a href="https://venmo.com/Evan-Jones-85" target="_blank" rel="noopener" title="Scan or click to tip on Venmo">
+    <h3 data-i18n="tip_heading">☕ TIP THE DEV</h3>
+    <p style="margin-bottom:10px" data-i18n="tip_line1" data-i18n-mode="html">Saved you hours of chaos?<br>Buy me a coffee — or flex your whale status.</p>
+    <a href="https://venmo.com/Evan-Jones-85" target="_blank" rel="noopener" data-i18n-title="tip_qr_title" title="Scan or click to tip on Venmo">
       <img src="data:image/png;base64,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" alt="Venmo QR Code — @Evan-Jones-85" style="width:160px;height:auto;border-radius:10px;display:block;margin:0 auto 8px">
     </a>
     <p style="color:#44884a;font-size:12px;font-weight:bold;margin-bottom:4px">@Evan-Jones-85</p>
-    <p style="color:#2a3a2a;font-size:10px;margin-bottom:10px">
+    <p style="color:#2a3a2a;font-size:10px;margin-bottom:10px" data-i18n="tip_venmo_hint" data-i18n-mode="html">
       Scan the QR code with your Venmo app, or click it.<br>
       If prompted to confirm the recipient, the last 4 digits are <strong style="color:#44884a">0829</strong>.
     </p>
@@ -389,49 +396,49 @@ select.inline-edit{width:auto;min-width:50px}
 
   <!-- CSV format guide -->
   <div class="tip-box">
-    <h3>📋 CSV FORMAT GUIDE</h3>
-    <p>Upload a CSV with these exact columns (in any order):</p>
+    <h3 data-i18n="csv_heading">📋 CSV FORMAT GUIDE</h3>
+    <p data-i18n="csv_intro">Upload a CSV with these exact columns (in any order):</p>
     <div class="csv-format-box">
-      <code>Member</code> &nbsp;or&nbsp; <code>Name</code><br>
-      <code>Rank</code> &nbsp;→ R5, R4, R3, R2, or R1<br>
-      <code>HQ Level</code> &nbsp;or&nbsp; <code>HQ Lv.</code><br>
-      <code>Total Power</code> &nbsp;→ e.g. <code>54.2M</code><br>
-      <code>Notes</code> &nbsp;(optional)
+      <span data-i18n="csv_col_member" data-i18n-mode="html"><code>Member</code> &nbsp;or&nbsp; <code>Name</code></span><br>
+      <span data-i18n="csv_col_rank" data-i18n-mode="html"><code>Rank</code> &nbsp;→ R5, R4, R3, R2, or R1</span><br>
+      <span data-i18n="csv_col_hq" data-i18n-mode="html"><code>HQ Level</code> &nbsp;or&nbsp; <code>HQ Lv.</code></span><br>
+      <span data-i18n="csv_col_power" data-i18n-mode="html"><code>Total Power</code> &nbsp;→ e.g. <code>54.2M</code></span><br>
+      <span data-i18n="csv_col_notes" data-i18n-mode="html"><code>Notes</code> &nbsp;(optional)</span>
     </div>
-    <p style="margin-top:10px">Extra spaces are trimmed automatically. Duplicate names keep the highest rank row.</p>
-    <p style="margin-top:6px;color:#443322">💡 <em>Pro tip:</em> Have your leader read out each member's name, rank, HQ level, and power out loud while someone fills in the spreadsheet — takes about 5 minutes for a full alliance.</p>
+    <p style="margin-top:10px" data-i18n="csv_note1">Extra spaces are trimmed automatically. Duplicate names keep the highest rank row.</p>
+    <p style="margin-top:6px;color:#443322" data-i18n="csv_protip" data-i18n-mode="html">💡 <em>Pro tip:</em> Have your leader read out each member's name, rank, HQ level, and power out loud while someone fills in the spreadsheet — takes about 5 minutes for a full alliance.</p>
   </div>
 
   <!-- ── Feedback / Feature Requests ─────────────────────────────────── -->
   <div class="feedback-section">
-    <h2>💡 SUGGESTIONS &amp; FEATURE REQUESTS</h2>
-    <p class="feedback-sub">Help shape the next version — vote for features you'd use, or leave your own idea below.</p>
+    <h2 data-i18n="fb_heading" data-i18n-mode="html">💡 SUGGESTIONS &amp; FEATURE REQUESTS</h2>
+    <p class="feedback-sub" data-i18n="fb_sub">Help shape the next version — vote for features you'd use, or leave your own idea below.</p>
     <div class="feedback-form">
       <div class="field">
-        <label>YOUR NAME OR ALLIANCE TAG (optional)</label>
-        <input id="fb-name" type="text" maxlength="40" placeholder="e.g. KittyKitty [R10t]" autocomplete="off">
+        <label data-i18n="fb_name_label">YOUR NAME OR ALLIANCE TAG (optional)</label>
+        <input id="fb-name" type="text" maxlength="40" data-i18n-placeholder="fb_name_placeholder" placeholder="e.g. KittyKitty [R10t]" autocomplete="off">
       </div>
       <div class="field" style="margin-top:13px">
-        <label>VOTE FOR FEATURES (check all that apply)</label>
+        <label data-i18n="fb_votes_label">VOTE FOR FEATURES (check all that apply)</label>
         <div class="fb-checks">
-          <label class="fb-check"><input type="checkbox" value="share_link"> Read-only shareable link so the whole alliance can view the grid live</label>
-          <label class="fb-check"><input type="checkbox" value="leader_dash"> Leader dashboard — upload once, every member sees it without editing</label>
-          <label class="fb-check"><input type="checkbox" value="formations"> Formation presets (circle, diamond, corner, zombie surge / KvK event layouts)</label>
-          <label class="fb-check"><input type="checkbox" value="swap_suggest"> Smart swap suggestions — flag weak placements and recommend improvements</label>
-          <label class="fb-check"><input type="checkbox" value="mobile"> Mobile-friendly view optimized for phones</label>
-          <label class="fb-check"><input type="checkbox" value="multi_hive"> Multi-hive / sub-alliance support (R1/R2 on a separate grid)</label>
-          <label class="fb-check"><input type="checkbox" value="power_history"> Member power history tracker — watch the alliance grow over time</label>
-          <label class="fb-check"><input type="checkbox" value="event_modes"> Event-mode layouts (zombie surge corner, KvK rally point, war defense)</label>
-          <label class="fb-check"><input type="checkbox" value="roster_import"> Auto roster import from in-game screenshots (OCR)</label>
+          <label class="fb-check"><input type="checkbox" value="share_link"> <span data-i18n="fb_v_share">Read-only shareable link so the whole alliance can view the grid live</span></label>
+          <label class="fb-check"><input type="checkbox" value="leader_dash"> <span data-i18n="fb_v_dash">Leader dashboard — upload once, every member sees it without editing</span></label>
+          <label class="fb-check"><input type="checkbox" value="formations"> <span data-i18n="fb_v_form">Formation presets (circle, diamond, corner, zombie surge / KvK event layouts)</span></label>
+          <label class="fb-check"><input type="checkbox" value="swap_suggest"> <span data-i18n="fb_v_swap">Smart swap suggestions — flag weak placements and recommend improvements</span></label>
+          <label class="fb-check"><input type="checkbox" value="mobile"> <span data-i18n="fb_v_mobile">Mobile-friendly view optimized for phones</span></label>
+          <label class="fb-check"><input type="checkbox" value="multi_hive"> <span data-i18n="fb_v_multi">Multi-hive / sub-alliance support (R1/R2 on a separate grid)</span></label>
+          <label class="fb-check"><input type="checkbox" value="power_history"> <span data-i18n="fb_v_history">Member power history tracker — watch the alliance grow over time</span></label>
+          <label class="fb-check"><input type="checkbox" value="event_modes"> <span data-i18n="fb_v_event">Event-mode layouts (zombie surge corner, KvK rally point, war defense)</span></label>
+          <label class="fb-check"><input type="checkbox" value="roster_import"> <span data-i18n="fb_v_ocr">Auto roster import from in-game screenshots (OCR)</span></label>
         </div>
       </div>
       <div class="field" style="margin-top:13px">
-        <label>YOUR OWN IDEA OR COMMENT</label>
-        <textarea id="fb-comment" rows="3" maxlength="500" placeholder="Describe your idea, report a bug, or just say hi…"></textarea>
+        <label data-i18n="fb_comment_label">YOUR OWN IDEA OR COMMENT</label>
+        <textarea id="fb-comment" rows="3" maxlength="500" data-i18n-placeholder="fb_comment_placeholder" placeholder="Describe your idea, report a bug, or just say hi…"></textarea>
       </div>
       <div style="margin-top:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <button class="btn-save" id="btn-fb-submit" style="padding:8px 20px">📨 Submit Feedback</button>
-        <span id="fb-thanks" style="display:none;color:#88ff88;font-size:11px">✓ Thanks! Your feedback has been recorded.</span>
+        <button class="btn-save" id="btn-fb-submit" style="padding:8px 20px" data-i18n="fb_submit">📨 Submit Feedback</button>
+        <span id="fb-thanks" style="display:none;color:#88ff88;font-size:11px" data-i18n="fb_thanks">✓ Thanks! Your feedback has been recorded.</span>
       </div>
     </div>
   </div>
@@ -442,6 +449,467 @@ select.inline-edit{width:auto;min-width:50px}
 <div id="toast"></div>
 
 <script>
+// ── i18n (English + Korean) ────────────────────────────────────────────────────
+// Game-authentic Last War Survival KR terminology:
+//   연맹 = alliance, 기지 = HQ, 전투력 = power, 등급 = rank,
+//   원수 근위대 = Marshall's Guard, 군사 요새 = Military Stronghold, 링 = ring
+const I18N = {
+  en: {
+    // Page + title
+    title:                    '◈ LAST WAR SURVIVAL — ALLIANCE HIVE GRID ◈',
+    alliance_label:           'ALLIANCE',
+    alliance_placeholder:     'Enter alliance name…',
+    alliance_title:           'Your alliance name — appears in PNG exports',
+    alliance_hint:            '← shown in PNG exports',
+    connecting:               'Connecting to server…',
+    // Toolbar
+    formation:                'FORMATION',
+    formation_title:          "Switch between Marshall's Guard event (3×3) and Military Stronghold (21×21, 2-tile spacing, 4 rings)",
+    fm_mg:                    "⚑ Marshall's Guard (3×3, no gaps)",
+    fm_sh:                    '🏰 Military Stronghold (21×21, 2-tile gaps)',
+    btn_auto:                 '⚡ Auto-Assign',
+    btn_auto_title:           'Auto-assign members to grid cells',
+    btn_csv_up:               '📂 Upload CSV',
+    btn_csv_up_title:         'Upload a CSV to update member data',
+    btn_csv_dl:               '⬇ CSV',
+    btn_csv_dl_title:         'Download current roster as CSV',
+    btn_set_mg:               '📍 Set MG Coords',
+    btn_set_mg_title:         'Change the MG anchor coordinates',
+    btn_clear_grid:           '🗑 Clear Grid',
+    btn_clear_grid_title:     'Unassign everyone — keep member list',
+    btn_reset_all:            '💥 Reset All',
+    btn_reset_all_title:      'Wipe everything and start fresh',
+    btn_export_png:           '📸 Export PNG',
+    btn_export_png_title:     'Export grid as PNG image for Discord/WhatsApp',
+    sort_title:               'Priority order for auto-assign',
+    sort_rank_power:          'Rank → Power',
+    sort_rank_hq_power:       'Rank → HQ → Power',
+    sort_hq_power:            'HQ Level → Power',
+    sort_power:               'Power only',
+    sort_hq:                  'HQ Level only',
+    sort_rank_hq:             'Rank → HQ Level',
+    // MG modal
+    mg_modal_title:           "📍 Set Marshall's Guard Coordinates",
+    mg_game_x:                'MG Game X',
+    mg_game_y:                'MG Game Y',
+    mg_modal_hint:            'Grid step is 3 tiles per cell. Changing this shifts all coordinate labels.',
+    btn_save:                 '💾 Save',
+    btn_cancel:               'Cancel',
+    // Watermark bar
+    wm_free:                  '🔓 <strong style="color:#4444aa">Alliance Hive Grid Tool</strong> &nbsp;·&nbsp; Free version — <a href="#tip-section">unlock full features for $10 one-time →</a>',
+    wm_unlocked:              '✅ <strong style="color:#224422">Full version unlocked</strong> &nbsp;·&nbsp; Alliance Hive Grid Tool',
+    // Stronghold banner
+    sh_banner:                '🏰 <strong>MILITARY STRONGHOLD</strong> &nbsp;·&nbsp; 21×21 tile fortress &nbsp;·&nbsp; Each alliance member = 3×3 tiles, 2-tile gap between every member &nbsp;·&nbsp; <span style="color:#ff8888">Ring 1 = strongest (against the mud)</span>',
+    sh_loading:               'Loading stronghold layout…',
+    sh_fortress_title:        '🏰 STRONGHOLD',
+    sh_fortress_sub:          '21×21 tiles · 7×7 cells',
+    sh_click_move:            '📍 click to move',
+    sh_click_move_title:      'Click to change anchor coordinates',
+    sh_empty_title:           'Ring ${ring} slot · empty (click to place)',
+    // MG cell
+    mg_cell_title:            '★ MG ★',
+    mg_cell_sub:              "Marshall's Guard",
+    mg_click_move_title:      'Click to change MG coordinates',
+    cell_drag_hint:           'drag to move',
+    cell_needs_data:          '⚠ needs data',
+    cell_dot:                 '·',
+    // Roster
+    roster_heading:           '▸ MEMBER ROSTER',
+    sort_by:                  'Sort by:',
+    sort_ring:                '📍 Ring',
+    sort_rank:                '🏅 Rank',
+    sort_power_short:         '⚡ Power',
+    sort_name:                '🔤 Name',
+    sort_hint:                '— click Rank/HQ/Power/Notes cells below to edit inline',
+    sel_msg_one:              '${n} member selected — click any empty grid cell to place them',
+    sel_msg_many:             '${n} members selected — click any empty grid cell to place them',
+    sel_clear:                '✕ Clear (Esc)',
+    col_num:                  '#',
+    col_name:                 'NAME',
+    col_rank:                 'RANK',
+    col_hq:                   'HQ LV.',
+    col_power:                'POWER',
+    col_coord:                'COORD',
+    col_ring:                 'RING',
+    col_notes:                'NOTES',
+    unassigned_sep:           '── UNASSIGNED (${n}) ──',
+    unassigned_row:           'unassigned',
+    // Edit modal
+    modal_add_member:         'Add Member',
+    modal_edit_member:        'Edit Member',
+    modal_edit_named:         'Edit — ${name}',
+    modal_coord_sh:           '🏰 Stronghold · Ring ${ring} · tile offset (${col},${row}) → game coord (${x}, ${y})',
+    modal_coord_mg:           '⚑ Grid position: col ${col}, row ${row}  →  (${x}, ${y})',
+    field_player_name:        'PLAYER NAME',
+    field_name_placeholder:   'Enter name…',
+    field_rank:               'RANK',
+    rank_unknown:             '— Unknown —',
+    rank_r5_leader:           'R5  (Leader)',
+    field_hq:                 'HQ LEVEL',
+    field_hq_placeholder:     'e.g. 25',
+    field_power:              'TOTAL POWER',
+    field_power_placeholder:  'e.g. 45.2M',
+    field_notes:              'NOTES',
+    field_notes_placeholder:  'Optional…',
+    btn_unassign:             '↩ Unassign',
+    btn_delete:               '🗑 Delete',
+    // Meta bar
+    meta_sh:                  '🏰 Stronghold centre @ (${x},${y}) &nbsp;│&nbsp; 21×21 tile fortress &nbsp;│&nbsp; 4 rings &nbsp;│&nbsp; ${slots} slots (2-tile gaps) &nbsp;│&nbsp; Members: ${total} total, ${assigned} placed${warn} &nbsp;│&nbsp; <em>Ring 1 = strongest, against the mud</em>',
+    meta_mg:                  '⚑ MG @ (${x},${y}) &nbsp;│&nbsp; Grid: ${cols}×${rows} &nbsp;│&nbsp; Step: ${step} tiles per cell &nbsp;│&nbsp; Members: ${total} total, ${assigned} placed${warn} &nbsp;│&nbsp; <em>Click cell to edit · Drag to move · Auto-saves JSON + CSV</em>',
+    meta_warn:                ' &nbsp;│&nbsp; <span style="color:#aa6600">⚠ ${n} members missing HQ/Power — click their cell to fill in</span>',
+    // Legend
+    lg_leader:                'Leader',
+    lg_r4:                    'R4',
+    lg_r3:                    'R3',
+    lg_r2:                    'R2',
+    lg_r1:                    'R1',
+    lg_mg:                    'Marshall Guard',
+    lg_empty:                 'Empty',
+    // Unlock section
+    unlock_heading:           '🔓 UNLOCK FULL VERSION — $10 ONE-TIME',
+    unlock_body:              'Your grid, your alliance, your image. The free version is fully functional — auto-assign, drag-and-drop, CSV import, PNG export, everything. The $10 unlock removes the watermark from every PNG you export, so the screenshot you drop in Discord looks clean and professional. One-time payment. No subscription, no renewal, no account. Pay via Stripe, get your key by email instantly, paste it in and you\'re done.',
+    unlock_btn:               '💳 Get Your Key — $10',
+    unlock_footnote:          'Secure checkout via Stripe · Apple Pay &amp; card accepted · Instant key delivery by email',
+    unlock_placeholder:       'Paste your key here…',
+    unlock_btn_apply:         'Unlock',
+    unlock_badge:             '✅ Unlocked',
+    // Tip jar
+    tip_heading:              '☕ TIP THE DEV',
+    tip_line1:                'Saved you hours of chaos?<br>Buy me a coffee — or flex your whale status.',
+    tip_venmo_hint:           'Scan the QR code with your Venmo app, or click it.<br>If prompted to confirm the recipient, the last 4 digits are <strong style="color:#44884a">0829</strong>.',
+    tip_qr_title:             'Scan or click to tip on Venmo',
+    // Snagit tip
+    snagit_heading:           '📸 CAPTURE THE WHOLE GAME SCREEN',
+    snagit_body:              'When you\'re gathering member names and stats from your in-game roster, a <strong>scrolling screenshot tool</strong> like <a href="https://www.techsmith.com/snagit.html" target="_blank" rel="noopener" style="color:#88ccff">Snagit</a> (Mac + Windows, ~$63 one-time) captures the entire alliance list in a single image instead of stitching together 6 screenshots. Pair it with this tool for a 5-minute alliance-wide setup. Free alternatives: <strong>ShareX</strong> (Windows), <strong>CleanShot X</strong> (Mac, has scrolling capture).',
+    // CSV guide
+    csv_heading:              '📋 CSV FORMAT GUIDE',
+    csv_intro:                'Upload a CSV with these exact columns (in any order):',
+    csv_col_member:           '<code>Member</code> &nbsp;or&nbsp; <code>Name</code>',
+    csv_col_rank:             '<code>Rank</code> &nbsp;→ R5, R4, R3, R2, or R1',
+    csv_col_hq:               '<code>HQ Level</code> &nbsp;or&nbsp; <code>HQ Lv.</code>',
+    csv_col_power:            '<code>Total Power</code> &nbsp;→ e.g. <code>54.2M</code>',
+    csv_col_notes:            '<code>Notes</code> &nbsp;(optional)',
+    csv_note1:                'Extra spaces are trimmed automatically. Duplicate names keep the highest rank row.',
+    csv_protip:               '💡 <em>Pro tip:</em> Have your leader read out each member\'s name, rank, HQ level, and power out loud while someone fills in the spreadsheet — takes about 5 minutes for a full alliance.',
+    // Feedback
+    fb_heading:               '💡 SUGGESTIONS &amp; FEATURE REQUESTS',
+    fb_sub:                   'Help shape the next version — vote for features you\'d use, or leave your own idea below.',
+    fb_name_label:            'YOUR NAME OR ALLIANCE TAG (optional)',
+    fb_name_placeholder:      'e.g. KittyKitty [R10t]',
+    fb_votes_label:           'VOTE FOR FEATURES (check all that apply)',
+    fb_v_share:               'Read-only shareable link so the whole alliance can view the grid live',
+    fb_v_dash:                'Leader dashboard — upload once, every member sees it without editing',
+    fb_v_form:                'Formation presets (circle, diamond, corner, zombie surge / KvK event layouts)',
+    fb_v_swap:                'Smart swap suggestions — flag weak placements and recommend improvements',
+    fb_v_mobile:              'Mobile-friendly view optimized for phones',
+    fb_v_multi:               'Multi-hive / sub-alliance support (R1/R2 on a separate grid)',
+    fb_v_history:             'Member power history tracker — watch the alliance grow over time',
+    fb_v_event:               'Event-mode layouts (zombie surge corner, KvK rally point, war defense)',
+    fb_v_ocr:                 'Auto roster import from in-game screenshots (OCR)',
+    fb_comment_label:         'YOUR OWN IDEA OR COMMENT',
+    fb_comment_placeholder:   'Describe your idea, report a bug, or just say hi…',
+    fb_submit:                '📨 Submit Feedback',
+    fb_thanks:                '✓ Thanks! Your feedback has been recorded.',
+    // Confirms
+    conf_switch_sh:           "Switch to Military Stronghold formation?\n\nThis clears all current grid placements (they don't map between formations) — your member list and stats are preserved. You can re-run ⚡ Auto-Assign afterward.",
+    conf_switch_mg:           "Switch back to Marshall's Guard formation?\n\nThis clears all current grid placements.",
+    conf_unassign:            'Remove ${name} from the grid? (They stay in the roster)',
+    conf_delete:              'Permanently delete ${name} from the roster?',
+    conf_clear_grid:          'Unassign everyone from the grid? Member data is kept — just removes all placements.',
+    conf_reset_1:             '⚠️ This will delete ALL members and placements. Are you sure?',
+    conf_reset_2:             'Really? This cannot be undone.',
+    // Toasts
+    t_moved:                  'Moved ✓',
+    t_saved:                  'Saved ✓',
+    t_error:                  'Error',
+    t_unassigned:             '${name} unassigned',
+    t_deleted:                '${name} deleted',
+    t_name_required:          'Name is required',
+    t_enter_key:              'Enter your unlock key first',
+    t_xy_numbers:             'X and Y must be numbers',
+    t_mg_set:                 '📍 MG anchor set to (${x}, ${y})',
+    t_grid_cleared:           '🗑 Grid cleared — all members unassigned',
+    t_reset:                  '💥 Everything cleared — fresh start',
+    t_all_placed:             'Everyone is already placed!',
+    t_name_saved:             'Alliance name saved ✓',
+    t_csv_imported:           '📂 CSV imported — ${added} added, ${updated} updated',
+    t_csv_failed:             'CSV upload failed',
+    t_clear_failed:           'Clear failed',
+    t_reset_failed:           'Reset failed',
+    t_placed_one:             '⚡ Placed ${n} member — ${sort}',
+    t_placed_many:            '⚡ Placed ${n} members — ${sort}',
+    t_rearranged:             '⚡ Re-arranged — ${sort}',
+    t_switched:               'Switched to ${label}',
+    t_switched_evicted:       'Switched to ${label} — ${evicted} placements cleared',
+    t_unlocked:               '🎉 Unlocked! Full version active.',
+    t_invalid_key:            'Invalid key',
+    t_csv_downloaded:         '📋 Roster downloaded as CSV',
+    t_png_exported:           '📸 PNG exported — ready for Discord!',
+    t_placed_generic_one:     'Placed ${n} member',
+    t_placed_generic_many:    'Placed ${n} members',
+    t_no_slots:               'No empty slots nearby',
+    t_fb_empty:               'Add your name, vote for a feature, or write a comment first.',
+    t_fb_failed:              'Could not save feedback — please try again.',
+    t_auto_failed:            'Auto-assign failed',
+    t_save_failed:            'Save failed',
+    t_mg_failed:              'Failed to set MG',
+    t_switch_failed:          'Switch failed',
+    // Error page
+    err_no_server_h:          '⚠ Cannot connect to server',
+    err_no_server_p:          'Make sure you started the server first:',
+    // PNG export
+    png_title:                '◈  LAST WAR SURVIVAL — ALLIANCE HIVE GRID  ◈',
+    png_subtitle:             'MG @ (${x},${y})  ·  ${placed} members placed  ·  exported ${date}',
+    png_mg:                   '★  MG  ★',
+    png_mg_sub:               "Marshall's Guard",
+    png_credit:               'Alliance Hive Grid Tool',
+    png_watermark:            'hivegrid.io',
+    png_free_footer:          'Free version · hivegrid.io · Unlock at $10 one-time',
+    // Language toggle
+    lang_toggle_label:        '한국어',
+    lang_toggle_title:        'Switch to Korean',
+  },
+  ko: {
+    title:                    '◈ 라스트 워: 서바이벌 — 연맹 벌집 배치도 ◈',
+    alliance_label:           '연맹',
+    alliance_placeholder:     '연맹 이름 입력…',
+    alliance_title:           '연맹 이름 — PNG 내보내기에 표시됩니다',
+    alliance_hint:            '← PNG 내보내기에 표시',
+    connecting:               '서버 연결 중…',
+    formation:                '배치 방식',
+    formation_title:          '원수 근위대 이벤트(3×3)와 군사 요새(21×21, 2타일 간격, 4링) 사이 전환',
+    fm_mg:                    '⚑ 원수 근위대 (3×3, 간격 없음)',
+    fm_sh:                    '🏰 군사 요새 (21×21, 2타일 간격)',
+    btn_auto:                 '⚡ 자동 배치',
+    btn_auto_title:           '연맹원을 그리드 셀에 자동 배치',
+    btn_csv_up:               '📂 CSV 업로드',
+    btn_csv_up_title:         'CSV 파일로 연맹원 정보 업데이트',
+    btn_csv_dl:               '⬇ CSV',
+    btn_csv_dl_title:         '현재 명단을 CSV로 다운로드',
+    btn_set_mg:               '📍 MG 좌표 설정',
+    btn_set_mg_title:         'MG 기준 좌표 변경',
+    btn_clear_grid:           '🗑 배치 초기화',
+    btn_clear_grid_title:     '배치만 해제 — 명단은 유지',
+    btn_reset_all:            '💥 전체 초기화',
+    btn_reset_all_title:      '모두 삭제하고 처음부터',
+    btn_export_png:           '📸 PNG 내보내기',
+    btn_export_png_title:     '디스코드/카톡용 PNG 이미지로 내보내기',
+    sort_title:               '자동 배치 우선순위',
+    sort_rank_power:          '등급 → 전투력',
+    sort_rank_hq_power:       '등급 → 기지 → 전투력',
+    sort_hq_power:            '기지 레벨 → 전투력',
+    sort_power:               '전투력만',
+    sort_hq:                  '기지 레벨만',
+    sort_rank_hq:             '등급 → 기지 레벨',
+    mg_modal_title:           '📍 원수 근위대 좌표 설정',
+    mg_game_x:                'MG 게임 X',
+    mg_game_y:                'MG 게임 Y',
+    mg_modal_hint:            '그리드 단위는 셀당 3타일입니다. 이 값을 바꾸면 모든 좌표 라벨이 이동합니다.',
+    btn_save:                 '💾 저장',
+    btn_cancel:               '취소',
+    wm_free:                  '🔓 <strong style="color:#4444aa">연맹 벌집 배치도</strong> &nbsp;·&nbsp; 무료 버전 — <a href="#tip-section">$10로 정식 버전 잠금해제 →</a>',
+    wm_unlocked:              '✅ <strong style="color:#224422">정식 버전 잠금해제됨</strong> &nbsp;·&nbsp; 연맹 벌집 배치도',
+    sh_banner:                '🏰 <strong>군사 요새</strong> &nbsp;·&nbsp; 21×21 타일 요새 &nbsp;·&nbsp; 연맹원 1인 = 3×3 타일, 모든 연맹원 사이 2타일 간격 &nbsp;·&nbsp; <span style="color:#ff8888">1링 = 최강 (진흙 옆)</span>',
+    sh_loading:               '요새 배치 로드 중…',
+    sh_fortress_title:        '🏰 요새',
+    sh_fortress_sub:          '21×21 타일 · 7×7 셀',
+    sh_click_move:            '📍 클릭하여 이동',
+    sh_click_move_title:      '기준 좌표 변경하려면 클릭',
+    sh_empty_title:           '${ring}링 자리 · 비어있음 (클릭하여 배치)',
+    mg_cell_title:            '★ MG ★',
+    mg_cell_sub:              '원수 근위대',
+    mg_click_move_title:      'MG 좌표 변경하려면 클릭',
+    cell_drag_hint:           '드래그하여 이동',
+    cell_needs_data:          '⚠ 정보 필요',
+    cell_dot:                 '·',
+    roster_heading:           '▸ 연맹원 명단',
+    sort_by:                  '정렬:',
+    sort_ring:                '📍 링',
+    sort_rank:                '🏅 등급',
+    sort_power_short:         '⚡ 전투력',
+    sort_name:                '🔤 이름',
+    sort_hint:                '— 등급/기지/전투력/메모 셀을 클릭하여 즉시 편집',
+    sel_msg_one:              '${n}명 선택됨 — 비어있는 그리드 셀을 클릭하여 배치',
+    sel_msg_many:             '${n}명 선택됨 — 비어있는 그리드 셀을 클릭하여 배치',
+    sel_clear:                '✕ 취소 (Esc)',
+    col_num:                  '#',
+    col_name:                 '이름',
+    col_rank:                 '등급',
+    col_hq:                   '기지',
+    col_power:                '전투력',
+    col_coord:                '좌표',
+    col_ring:                 '링',
+    col_notes:                '메모',
+    unassigned_sep:           '── 미배치 (${n}) ──',
+    unassigned_row:           '미배치',
+    modal_add_member:         '연맹원 추가',
+    modal_edit_member:        '연맹원 편집',
+    modal_edit_named:         '편집 — ${name}',
+    modal_coord_sh:           '🏰 요새 · ${ring}링 · 타일 오프셋 (${col},${row}) → 게임 좌표 (${x}, ${y})',
+    modal_coord_mg:           '⚑ 그리드 위치: 열 ${col}, 행 ${row}  →  (${x}, ${y})',
+    field_player_name:        '플레이어 이름',
+    field_name_placeholder:   '이름 입력…',
+    field_rank:               '등급',
+    rank_unknown:             '— 미지정 —',
+    rank_r5_leader:           'R5  (연맹장)',
+    field_hq:                 '기지 레벨',
+    field_hq_placeholder:     '예: 25',
+    field_power:              '총 전투력',
+    field_power_placeholder:  '예: 45.2M',
+    field_notes:              '메모',
+    field_notes_placeholder:  '선택 사항…',
+    btn_unassign:             '↩ 배치 해제',
+    btn_delete:               '🗑 삭제',
+    meta_sh:                  '🏰 요새 중심 @ (${x},${y}) &nbsp;│&nbsp; 21×21 타일 요새 &nbsp;│&nbsp; 4링 &nbsp;│&nbsp; ${slots}자리 (2타일 간격) &nbsp;│&nbsp; 연맹원: 총 ${total}명, 배치 ${assigned}명${warn} &nbsp;│&nbsp; <em>1링 = 최강, 진흙 옆</em>',
+    meta_mg:                  '⚑ MG @ (${x},${y}) &nbsp;│&nbsp; 그리드: ${cols}×${rows} &nbsp;│&nbsp; 단위: 셀당 ${step}타일 &nbsp;│&nbsp; 연맹원: 총 ${total}명, 배치 ${assigned}명${warn} &nbsp;│&nbsp; <em>셀 클릭 편집 · 드래그 이동 · JSON+CSV 자동 저장</em>',
+    meta_warn:                ' &nbsp;│&nbsp; <span style="color:#aa6600">⚠ ${n}명 기지/전투력 미입력 — 셀 클릭하여 입력</span>',
+    lg_leader:                '연맹장',
+    lg_r4:                    'R4',
+    lg_r3:                    'R3',
+    lg_r2:                    'R2',
+    lg_r1:                    'R1',
+    lg_mg:                    '원수 근위대',
+    lg_empty:                 '비어있음',
+    unlock_heading:           '🔓 정식 버전 잠금해제 — $10 일회성',
+    unlock_body:              '당신의 그리드, 당신의 연맹, 당신의 이미지. 무료 버전도 완전히 작동합니다 — 자동 배치, 드래그 앤 드롭, CSV 가져오기, PNG 내보내기 모두. $10 잠금해제는 내보내는 모든 PNG에서 워터마크를 제거하여, 디스코드에 올리는 스크린샷이 깔끔하고 전문적으로 보이게 합니다. 일회성 결제. 구독 없음, 갱신 없음, 계정 없음. Stripe로 결제, 이메일로 즉시 키 수령, 붙여넣기 후 완료.',
+    unlock_btn:               '💳 키 받기 — $10',
+    unlock_footnote:          'Stripe 안전 결제 · Apple Pay &amp; 카드 지원 · 이메일로 즉시 키 전송',
+    unlock_placeholder:       '키를 여기에 붙여넣기…',
+    unlock_btn_apply:         '잠금해제',
+    unlock_badge:             '✅ 잠금해제됨',
+    tip_heading:              '☕ 개발자 후원',
+    tip_line1:                '많은 시간 아끼셨나요?<br>커피 한 잔 사주세요 — 고래님 인증도 환영.',
+    tip_venmo_hint:           'Venmo 앱으로 QR 코드를 스캔하거나 클릭하세요.<br>수신자 확인 시 마지막 4자리는 <strong style="color:#44884a">0829</strong>입니다.',
+    tip_qr_title:             'Venmo에서 후원하려면 스캔 또는 클릭',
+    snagit_heading:           '📸 게임 화면 전체 캡처',
+    snagit_body:              '인게임 명단에서 연맹원 이름과 스탯을 정리할 때, <a href="https://www.techsmith.com/snagit.html" target="_blank" rel="noopener" style="color:#88ccff">Snagit</a>(맥+윈도우, 약 $63 일회성) 같은 <strong>스크롤 스크린샷 도구</strong>를 사용하면 6장의 스크린샷을 이어 붙이는 대신 전체 연맹원 목록을 한 장의 이미지로 캡처할 수 있습니다. 이 도구와 함께 사용하면 5분 안에 연맹 전체 설정이 가능합니다. 무료 대안: <strong>ShareX</strong>(윈도우), <strong>CleanShot X</strong>(맥, 스크롤 캡처 지원).',
+    csv_heading:              '📋 CSV 형식 안내',
+    csv_intro:                '아래 열 이름을 정확히 포함하여 CSV를 업로드하세요 (순서 무관):',
+    csv_col_member:           '<code>Member</code> &nbsp;또는&nbsp; <code>Name</code>',
+    csv_col_rank:             '<code>Rank</code> &nbsp;→ R5, R4, R3, R2, 또는 R1',
+    csv_col_hq:               '<code>HQ Level</code> &nbsp;또는&nbsp; <code>HQ Lv.</code>',
+    csv_col_power:            '<code>Total Power</code> &nbsp;→ 예: <code>54.2M</code>',
+    csv_col_notes:            '<code>Notes</code> &nbsp;(선택)',
+    csv_note1:                '공백은 자동으로 제거됩니다. 중복 이름은 등급이 가장 높은 행이 유지됩니다.',
+    csv_protip:               '💡 <em>꿀팁:</em> 연맹장이 연맹원 이름, 등급, 기지 레벨, 전투력을 소리내어 읽고 다른 사람이 스프레드시트에 입력하면 — 전체 연맹 기준 5분이면 끝납니다.',
+    fb_heading:               '💡 건의사항 &amp; 기능 요청',
+    fb_sub:                   '다음 버전 형태를 도와주세요 — 원하는 기능에 투표하거나 아이디어를 남기세요.',
+    fb_name_label:            '이름 또는 연맹 태그 (선택)',
+    fb_name_placeholder:      '예: KittyKitty [R10t]',
+    fb_votes_label:           '기능에 투표 (해당 항목 모두 선택)',
+    fb_v_share:               '읽기 전용 공유 링크 — 연맹 전체가 실시간으로 그리드 보기',
+    fb_v_dash:                '연맹장 대시보드 — 한 번 업로드하면 모든 연맹원이 편집 없이 보기',
+    fb_v_form:                '배치 프리셋 (원형, 다이아몬드, 코너, 좀비 침공/KvK 이벤트 배치)',
+    fb_v_swap:                '스마트 교체 제안 — 약한 배치를 감지하고 개선 추천',
+    fb_v_mobile:              '휴대폰 최적화 모바일 뷰',
+    fb_v_multi:               '다중 벌집 / 서브연맹 지원 (R1/R2를 별도 그리드에)',
+    fb_v_history:             '연맹원 전투력 이력 추적 — 연맹 성장 과정 확인',
+    fb_v_event:               '이벤트 모드 배치 (좀비 침공 코너, KvK 집결지, 전쟁 방어)',
+    fb_v_ocr:                 '인게임 스크린샷에서 명단 자동 가져오기 (OCR)',
+    fb_comment_label:         '아이디어 또는 코멘트',
+    fb_comment_placeholder:   '아이디어 설명, 버그 신고, 인사 등…',
+    fb_submit:                '📨 피드백 제출',
+    fb_thanks:                '✓ 감사합니다! 피드백이 기록되었습니다.',
+    conf_switch_sh:           '군사 요새 배치로 전환하시겠습니까?\n\n현재 모든 그리드 배치가 초기화됩니다 (배치 방식 간 좌표는 호환되지 않음) — 연맹원 명단과 스탯은 유지됩니다. 이후 ⚡ 자동 배치를 다시 실행할 수 있습니다.',
+    conf_switch_mg:           '원수 근위대 배치로 되돌리시겠습니까?\n\n현재 모든 그리드 배치가 초기화됩니다.',
+    conf_unassign:            '${name}님을 그리드에서 배치 해제하시겠습니까? (명단에는 유지됩니다)',
+    conf_delete:              '${name}님을 명단에서 영구 삭제하시겠습니까?',
+    conf_clear_grid:          '모든 그리드 배치를 해제하시겠습니까? 연맹원 정보는 유지되며 배치만 초기화됩니다.',
+    conf_reset_1:             '⚠️ 모든 연맹원과 배치가 삭제됩니다. 계속하시겠습니까?',
+    conf_reset_2:             '정말입니까? 되돌릴 수 없습니다.',
+    t_moved:                  '이동 완료 ✓',
+    t_saved:                  '저장 완료 ✓',
+    t_error:                  '오류',
+    t_unassigned:             '${name} 배치 해제됨',
+    t_deleted:                '${name} 삭제됨',
+    t_name_required:          '이름이 필요합니다',
+    t_enter_key:              '먼저 잠금해제 키를 입력하세요',
+    t_xy_numbers:             'X와 Y는 숫자여야 합니다',
+    t_mg_set:                 '📍 MG 기준 좌표가 (${x}, ${y})로 설정됨',
+    t_grid_cleared:           '🗑 그리드 초기화 — 모든 연맹원 배치 해제됨',
+    t_reset:                  '💥 전체 초기화 — 처음부터',
+    t_all_placed:             '모든 연맹원이 이미 배치되어 있습니다!',
+    t_name_saved:             '연맹 이름 저장됨 ✓',
+    t_csv_imported:           '📂 CSV 가져옴 — 추가 ${added}, 업데이트 ${updated}',
+    t_csv_failed:             'CSV 업로드 실패',
+    t_clear_failed:           '초기화 실패',
+    t_reset_failed:           '전체 초기화 실패',
+    t_placed_one:             '⚡ ${n}명 배치됨 — ${sort}',
+    t_placed_many:            '⚡ ${n}명 배치됨 — ${sort}',
+    t_rearranged:             '⚡ 재정렬 완료 — ${sort}',
+    t_switched:               '${label}로 전환됨',
+    t_switched_evicted:       '${label}로 전환됨 — ${evicted}개 배치 초기화됨',
+    t_unlocked:               '🎉 잠금해제됨! 정식 버전 활성화.',
+    t_invalid_key:            '유효하지 않은 키',
+    t_csv_downloaded:         '📋 명단이 CSV로 다운로드됨',
+    t_png_exported:           '📸 PNG 내보내기 완료 — 디스코드 공유 준비!',
+    t_placed_generic_one:     '${n}명 배치됨',
+    t_placed_generic_many:    '${n}명 배치됨',
+    t_no_slots:               '주변에 빈 자리가 없습니다',
+    t_fb_empty:               '이름 입력, 기능 투표, 또는 코멘트를 먼저 작성하세요.',
+    t_fb_failed:              '피드백 저장 실패 — 다시 시도하세요.',
+    t_auto_failed:            '자동 배치 실패',
+    t_save_failed:            '저장 실패',
+    t_mg_failed:              'MG 설정 실패',
+    t_switch_failed:          '전환 실패',
+    err_no_server_h:          '⚠ 서버에 연결할 수 없습니다',
+    err_no_server_p:          '먼저 서버를 시작했는지 확인하세요:',
+    png_title:                '◈  라스트 워: 서바이벌 — 연맹 벌집 배치도  ◈',
+    png_subtitle:             'MG @ (${x},${y})  ·  ${placed}명 배치  ·  내보내기 ${date}',
+    png_mg:                   '★  MG  ★',
+    png_mg_sub:               '원수 근위대',
+    png_credit:               '연맹 벌집 배치도',
+    png_watermark:            'hivegrid.io',
+    png_free_footer:          '무료 버전 · hivegrid.io · $10로 잠금해제',
+    lang_toggle_label:        'EN',
+    lang_toggle_title:        'Switch to English',
+  }
+};
+
+let LANG = (function(){
+  const saved = localStorage.getItem('hiveLang');
+  if(saved === 'en' || saved === 'ko') return saved;
+  return (navigator.language || 'en').toLowerCase().startsWith('ko') ? 'ko' : 'en';
+})();
+
+function t(key, vars){
+  let s = (I18N[LANG] && I18N[LANG][key]) || (I18N.en[key] ?? key);
+  if(vars){
+    for(const k in vars) s = s.replaceAll('${'+k+'}', vars[k]);
+  }
+  return s;
+}
+
+function applyI18n(){
+  document.documentElement.lang = LANG;
+  document.title = t('title');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.getAttribute('data-i18n');
+    const mode = el.getAttribute('data-i18n-mode') || 'text';
+    if(mode === 'html') el.innerHTML = t(k); else el.textContent = t(k);
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el =>
+    el.setAttribute('title', t(el.getAttribute('data-i18n-title'))));
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el =>
+    el.setAttribute('placeholder', t(el.getAttribute('data-i18n-placeholder'))));
+  // Sync language toggle pill
+  const pill = document.getElementById('lang-toggle');
+  if(pill){
+    pill.textContent = t('lang_toggle_label');
+    pill.title = t('lang_toggle_title');
+  }
+  // Sync the layout dropdown option labels (they're set via data-i18n but also
+  // used as fallbacks in the JS `sortLabels` map — re-fetch on switch)
+}
+
+function setLang(lang){
+  if(lang !== 'en' && lang !== 'ko') return;
+  LANG = lang;
+  localStorage.setItem('hiveLang', lang);
+  applyI18n();
+  if(cfg) renderAll();   // re-render dynamic content (roster, meta, grid)
+}
+
 // ── Constants ──────────────────────────────────────────────────────────────────
 const RANK_CLR = {R5:'#da8fff',R4:'#ffd700',R3:'#00bfff',R2:'#44dd66',R1:'#6699ff',MG:'#ff5555','':'#444466'};
 const RANK_ORD = {R5:0,R4:1,R3:2,R2:3,R1:4,'':5};
@@ -517,7 +985,7 @@ async function loadStrongholdSlots(){
 async function api(path, body){
   const r = await fetch(path,{
     method:'POST',
-    headers:{'Content-Type':'application/json'},
+    headers:{'Content-Type':'application/json', 'X-Hive-Lang': LANG},
     body: JSON.stringify(body)
   });
   return r.json();
@@ -525,14 +993,14 @@ async function api(path, body){
 
 async function doMove(from, to){
   const d = await api('/api/move',{from,to});
-  if(d.ok){ cfg=d.config; renderAll(); toast('Moved ✓'); }
-  else toast(d.error||'Error',true);
+  if(d.ok){ cfg=d.config; renderAll(); toast(t('t_moved')); }
+  else toast(d.error||t('t_error'),true);
 }
 
 async function doEdit(oldName, newName, rank, hq, power, notes){
   const d = await api('/api/edit',{old_name:oldName,name:newName,rank,hq,power,notes});
-  if(d.ok){ cfg=d.config; renderAll(); closeModal(); toast('Saved ✓'); }
-  else toast(d.error||'Error',true);
+  if(d.ok){ cfg=d.config; renderAll(); closeModal(); toast(t('t_saved')); }
+  else toast(d.error||t('t_error'),true);
 }
 
 async function doAssign(name, col, row){
@@ -542,12 +1010,12 @@ async function doAssign(name, col, row){
 
 async function doUnassign(name){
   const d = await api('/api/unassign',{name});
-  if(d.ok){ cfg=d.config; renderAll(); closeModal(); toast(`${name} unassigned`); }
+  if(d.ok){ cfg=d.config; renderAll(); closeModal(); toast(t('t_unassigned',{name})); }
 }
 
 async function doDelete(name){
   const d = await api('/api/delete',{name});
-  if(d.ok){ cfg=d.config; renderAll(); closeModal(); toast(`${name} deleted`); }
+  if(d.ok){ cfg=d.config; renderAll(); closeModal(); toast(t('t_deleted',{name})); }
 }
 
 // ── Modal ──────────────────────────────────────────────────────────────────────
@@ -560,14 +1028,12 @@ function openModal(key){
   editKey  = key;
   editName = name||null;
 
-  document.getElementById('modal-title').textContent = name ? `Edit — ${name}` : `Add Member`;
+  document.getElementById('modal-title').textContent = name ? t('modal_edit_named',{name}) : t('modal_add_member');
   if(isStronghold()){
     const ring = strongholdRing(col, row);
-    document.getElementById('modal-coord').textContent =
-      `🏰 Stronghold · Ring ${ring} · tile offset (${col},${row}) → game coord (${x}, ${y})`;
+    document.getElementById('modal-coord').textContent = t('modal_coord_sh',{ring,col,row,x,y});
   } else {
-    document.getElementById('modal-coord').textContent =
-      `⚑ Grid position: col ${col}, row ${row}  →  (${x}, ${y})`;
+    document.getElementById('modal-coord').textContent = t('modal_coord_mg',{col,row,x,y});
   }
   document.getElementById('f-name').value   = name||'';
   document.getElementById('f-rank').value   = m.rank||'';
@@ -601,7 +1067,7 @@ document.getElementById('btn-clear-sel').onclick = () => {
 
 document.getElementById('btn-save').onclick = async () => {
   const newName = document.getElementById('f-name').value.trim();
-  if(!newName){ toast('Name is required',true); return; }
+  if(!newName){ toast(t('t_name_required'),true); return; }
   const rank  = document.getElementById('f-rank').value;
   const hq    = document.getElementById('f-hq').value || null;
   const power = document.getElementById('f-power').value.trim() || null;
@@ -618,12 +1084,12 @@ document.getElementById('btn-save').onclick = async () => {
 };
 
 document.getElementById('btn-unassign').onclick = async () => {
-  if(editName && confirm(`Remove ${editName} from the grid? (They stay in the roster)`))
+  if(editName && confirm(t('conf_unassign',{name:editName})))
     await doUnassign(editName);
 };
 
 document.getElementById('btn-delete').onclick = async () => {
-  if(editName && confirm(`Permanently delete ${editName} from the roster?`))
+  if(editName && confirm(t('conf_delete',{name:editName})))
     await doDelete(editName);
 };
 
@@ -679,7 +1145,7 @@ function renderStronghold(){
   const canvas = document.getElementById('stronghold-canvas');
   if(!canvas) return;
   if(!Array.isArray(strongholdSlots)){
-    canvas.innerHTML = '<div style="color:#888;padding:40px;font-size:11px">Loading stronghold layout…</div>';
+    canvas.innerHTML = `<div style="color:#888;padding:40px;font-size:11px">${t('sh_loading')}</div>`;
     return;
   }
   const p = cfg.layout || {};
@@ -706,12 +1172,12 @@ function renderStronghold(){
   fortress.style.width  = ((2 * half + 1) * SH_TILE_PX) + 'px';
   fortress.style.height = ((2 * half + 1) * SH_TILE_PX) + 'px';
   fortress.innerHTML = `
-    <div class="sf-title">🏰 STRONGHOLD</div>
-    <div class="sf-sub">21×21 tiles · 7×7 cells</div>
-    <div class="sf-coord">centre @ (${cfg.mg.x}, ${cfg.mg.y})</div>
-    <div style="font-size:8px;color:#aa5555;margin-top:5px">📍 click to move</div>
+    <div class="sf-title">${t('sh_fortress_title')}</div>
+    <div class="sf-sub">${t('sh_fortress_sub')}</div>
+    <div class="sf-coord">${LANG==='ko'?'중심':'centre'} @ (${cfg.mg.x}, ${cfg.mg.y})</div>
+    <div style="font-size:8px;color:#aa5555;margin-top:5px">${t('sh_click_move')}</div>
   `;
-  fortress.title = 'Click to change anchor coordinates';
+  fortress.title = t('sh_click_move_title');
   fortress.style.cursor = 'pointer';
   fortress.addEventListener('click', () => document.getElementById('btn-set-mg').click());
   canvas.appendChild(fortress);
@@ -754,14 +1220,14 @@ function renderStronghold(){
         <div class="sh-rk"   style="color:${c}">${m.rank||'?'}/${m.hq!=null?'HQ'+m.hq:'—'}</div>
         <div class="sh-coord">${wx},${wy}</div>
       `;
-      div.title = `${name} · ${m.rank||'?'} · HQ ${m.hq||'?'} · ${m.power||'—'} · Ring ${ring} · tile (${wx},${wy})`;
+      div.title = `${name} · ${m.rank||'?'} · ${LANG==='ko'?'기지':'HQ'} ${m.hq||'?'} · ${m.power||'—'} · ${LANG==='ko'?ring+'링':'Ring '+ring} · ${LANG==='ko'?'타일':'tile'} (${wx},${wy})`;
       div.addEventListener('click', () => {
         if(selectedNames.size > 0){ selectedNames.clear(); lastRosterIdx = -1; updateSelectionUI(); }
         else openModal(key);
       });
     } else {
       div.innerHTML = `<div style="color:#3a3a55;font-size:8px">R${ring}</div>`;
-      div.title = `Ring ${ring} slot · empty (click to place)`;
+      div.title = t('sh_empty_title',{ring});
       div.addEventListener('click', () => {
         if(selectedNames.size > 0) placeSelected(tx, ty);
         else openModal(key);
@@ -798,13 +1264,13 @@ function renderGridMG(){
 
       if(isMG){
         td.classList.add('mg');
-        td.title = 'Click to change MG coordinates';
+        td.title = t('mg_click_move_title');
         td.style.cursor = 'pointer';
         td.innerHTML += `
-          <div class="cname" style="color:var(--mg)">★ MG ★</div>
+          <div class="cname" style="color:var(--mg)">${t('mg_cell_title')}</div>
           <div class="ctag"  style="color:var(--mg)">${x},${y}</div>
-          <div class="ccoord"style="color:var(--mg)">Marshall's Guard</div>
-          <div style="font-size:8px;color:#444466;margin-top:3px">📍 click to move</div>`;
+          <div class="ccoord"style="color:var(--mg)">${t('mg_cell_sub')}</div>
+          <div style="font-size:8px;color:#444466;margin-top:3px">${t('sh_click_move')}</div>`;
         td.addEventListener('click', () => document.getElementById('btn-set-mg').click());
       } else if(name){
         const m       = cfg.members[name]||{};
@@ -815,11 +1281,11 @@ function renderGridMG(){
         const bg = dist===1?'#1d1d30':dist===2?'#171726':dist===3?'#131322':'#101020';
         td.style.background = bg;
         td.innerHTML += `
-          ${missingData ? '<div class="needs-data">⚠ needs data</div>' : ''}
+          ${missingData ? `<div class="needs-data">${t('cell_needs_data')}</div>` : ''}
           <div class="cname" style="color:${c}">${name}</div>
           <div class="ctag"  style="color:${c}">${memberTag(name)}</div>
           <div class="ccoord">(${x},${y})</div>
-          <div class="drag-hint">drag to move</div>`;
+          <div class="drag-hint">${t('cell_drag_hint')}</div>`;
         td.addEventListener('click', ()=>{
           if(selectedNames.size > 0){ selectedNames.clear(); lastRosterIdx = -1; updateSelectionUI(); }
           else openModal(key);
@@ -827,7 +1293,7 @@ function renderGridMG(){
       } else {
         td.classList.add('empty');
         td.innerHTML += `
-          <div class="cname" style="color:#333348">·</div>
+          <div class="cname" style="color:#333348">${t('cell_dot')}</div>
           <div class="ccoord">(${x},${y})</div>`;
         td.addEventListener('click', ()=>{
           if(selectedNames.size > 0) placeSelected(col, row);
@@ -871,8 +1337,8 @@ function makeInlineInput(name, field, value, isSelect=false){
     else if(field==='rank')  m.rank  = v;
     else if(field==='notes') m.notes = v;
     const d = await api('/api/edit',{old_name:name, name, rank:m.rank||'', hq:m.hq, power:m.power, notes:m.notes||''});
-    if(d.ok){ cfg=d.config; renderGrid(); renderMeta(); toast('Saved ✓'); }
-    else toast(d.error||'Save failed', true);
+    if(d.ok){ cfg=d.config; renderGrid(); renderMeta(); toast(t('t_saved')); }
+    else toast(d.error||t('t_save_failed'), true);
   };
 
   el.addEventListener('change', save);
@@ -891,7 +1357,8 @@ function updateSelectionUI(){
   });
   if(selectedNames.size > 0){
     bar.style.display = 'flex';
-    msg.textContent = `${selectedNames.size} member${selectedNames.size===1?'':'s'} selected — click any empty grid cell to place them`;
+    const n = selectedNames.size;
+    msg.textContent = t(n===1 ? 'sel_msg_one' : 'sel_msg_many', {n});
   } else {
     bar.style.display = 'none';
   }
@@ -924,7 +1391,7 @@ async function placeSelected(startCol, startRow){
 
   const names = [...selectedNames];
   const cells = candidates.slice(0, names.length);
-  if(cells.length === 0){ toast('No empty slots nearby', true); return; }
+  if(cells.length === 0){ toast(t('t_no_slots'), true); return; }
 
   let placed = 0;
   for(let i=0; i<Math.min(names.length, cells.length); i++){
@@ -934,7 +1401,7 @@ async function placeSelected(startCol, startRow){
   selectedNames.clear();
   lastRosterIdx = -1;
   renderAll();
-  toast(`Placed ${placed} member${placed===1?'':'s'}`);
+  toast(t(placed===1 ? 't_placed_generic_one' : 't_placed_generic_many', {n:placed}));
 }
 
 function renderRoster(){
@@ -1026,7 +1493,7 @@ function renderRoster(){
 
     const tdRing = document.createElement('td');
     tdRing.style.color = '#555';
-    tdRing.textContent = `ring ${dist}`;
+    tdRing.textContent = LANG==='ko' ? `${dist}링` : `ring ${dist}`;
     tr.appendChild(tdRing);
 
     // Inline-editable: Notes
@@ -1059,7 +1526,7 @@ function renderRoster(){
 
   if(unassigned.length){
     const sep = document.createElement('tr');
-    sep.innerHTML=`<td class="sep-row" colspan="8">── UNASSIGNED (${unassigned.length}) ──</td>`;
+    sep.innerHTML=`<td class="sep-row" colspan="8">${t('unassigned_sep',{n:unassigned.length})}</td>`;
     tbody.appendChild(sep);
 
     for(const name of unassigned){
@@ -1095,7 +1562,7 @@ function renderRoster(){
       tdPow.appendChild(makeInlineInput(name, 'power', m.power));
       tr.appendChild(tdPow);
 
-      tr.insertAdjacentHTML('beforeend',`<td style="color:#444">unassigned</td><td style="color:#444">—</td>`);
+      tr.insertAdjacentHTML('beforeend',`<td style="color:#444">${t('unassigned_row')}</td><td style="color:#444">—</td>`);
       const tdNotes = document.createElement('td');
       tdNotes.style.fontSize='10px';
       tdNotes.appendChild(makeInlineInput(name, 'notes', m.notes));
@@ -1128,7 +1595,7 @@ function renderRoster(){
 // ── Legend ─────────────────────────────────────────────────────────────────────
 function renderLegend(){
   document.getElementById('legend').innerHTML = [
-    ['R5','Leader'],['R4','R4'],['R3','R3'],['R2','R2'],['R1','R1'],['MG','Marshall Guard'],['','Empty']
+    ['R5',t('lg_leader')],['R4',t('lg_r4')],['R3',t('lg_r3')],['R2',t('lg_r2')],['R1',t('lg_r1')],['MG',t('lg_mg')],['',t('lg_empty')]
   ].map(([r,label])=>
     `<div class="leg">
       <div class="leg-dot" style="background:${clr(r)}"></div>
@@ -1143,23 +1610,10 @@ function renderMeta(){
   const assigned = Object.keys(cfg.assignments).length;
   const total = Object.keys(cfg.members).length;
   const needsData = Object.values(cfg.members).filter(m => m.hq == null && m.power == null).length;
-  const warn = needsData > 0
-    ? ` &nbsp;│&nbsp; <span style="color:#aa6600">⚠ ${needsData} members missing HQ/Power — click their cell to fill in</span>`
-    : '';
-  if(isStronghold()){
-    const slots = strongholdSlots ? strongholdSlots.length : '?';
-    document.getElementById('meta').innerHTML =
-      `🏰 Stronghold centre @ (${cfg.mg.x},${cfg.mg.y}) &nbsp;│&nbsp; ` +
-      `21×21 tile fortress &nbsp;│&nbsp; 4 rings &nbsp;│&nbsp; ${slots} slots (2-tile gaps) &nbsp;│&nbsp; ` +
-      `Members: ${total} total, ${assigned} placed` + warn +
-      ` &nbsp;│&nbsp; <em>Ring 1 = strongest, against the mud</em>`;
-  } else {
-    document.getElementById('meta').innerHTML =
-      `⚑ MG @ (${cfg.mg.x},${cfg.mg.y}) &nbsp;│&nbsp; Grid: ${g.cols}×${g.rows} &nbsp;│&nbsp; ` +
-      `Step: ${g.step} tiles per cell &nbsp;│&nbsp; Members: ${total} total, ${assigned} placed` +
-      warn +
-      ` &nbsp;│&nbsp; <em>Click cell to edit · Drag to move · Auto-saves JSON + CSV</em>`;
-  }
+  const warn = needsData > 0 ? t('meta_warn',{n:needsData}) : '';
+  const vars = {x:cfg.mg.x, y:cfg.mg.y, cols:g.cols, rows:g.rows, step:g.step, total, assigned, warn,
+                slots: strongholdSlots ? strongholdSlots.length : '?'};
+  document.getElementById('meta').innerHTML = t(isStronghold() ? 'meta_sh' : 'meta_mg', vars);
 }
 
 // ── Toast ──────────────────────────────────────────────────────────────────────
@@ -1192,11 +1646,7 @@ function renderAll(){
 // ── Layout-mode dropdown handler ───────────────────────────────────────────────
 document.getElementById('layout-mode').addEventListener('change', async (e) => {
   const mode = e.target.value;
-  if(!confirm(
-      mode === 'stronghold'
-        ? 'Switch to Military Stronghold formation?\n\nThis clears all current grid placements (they don\'t map between formations) — your member list and stats are preserved. You can re-run ⚡ Auto-Assign afterward.'
-        : 'Switch back to Marshall\'s Guard formation?\n\nThis clears all current grid placements.'
-  )){
+  if(!confirm(mode === 'stronghold' ? t('conf_switch_sh') : t('conf_switch_mg'))){
     // Reset dropdown to current mode
     e.target.value = cfg.layout?.mode || 'mg';
     return;
@@ -1206,50 +1656,50 @@ document.getElementById('layout-mode').addEventListener('change', async (e) => {
     cfg = d.config;
     if(mode === 'stronghold' && !strongholdSlots) await loadStrongholdSlots();
     renderAll();
-    toast(`Switched to ${cfg.layout.label}${d.evicted ? ` — ${d.evicted} placements cleared` : ''}`);
+    // Translate the layout label from the preset (server sends English)
+    const label = mode === 'stronghold'
+      ? (LANG==='ko' ? '군사 요새' : "Military Stronghold")
+      : (LANG==='ko' ? '원수 근위대' : "Marshall's Guard");
+    toast(t(d.evicted ? 't_switched_evicted' : 't_switched', {label, evicted:d.evicted}));
   } else {
-    toast(d.error || 'Switch failed', true);
+    toast(d.error || t('t_switch_failed'), true);
     e.target.value = cfg.layout?.mode || 'mg';
   }
 });
 
 // ── Auto-assign button ──────────────────────────────────────────────────────────
+function sortLabel(sortBy){
+  const keys = {
+    'rank,power':     'sort_rank_power',
+    'rank,hq,power':  'sort_rank_hq_power',
+    'hq,power':       'sort_hq_power',
+    'power':          'sort_power',
+    'hq':             'sort_hq',
+    'rank,hq':        'sort_rank_hq',
+  };
+  return keys[sortBy] ? t(keys[sortBy]) : sortBy;
+}
+
 document.getElementById('btn-auto-assign').onclick = async () => {
   const unplaced = Object.keys(cfg.members).filter(n => !Object.values(cfg.assignments).includes(n));
-  if(unplaced.length === 0){ toast('Everyone is already placed!'); return; }
+  if(unplaced.length === 0){ toast(t('t_all_placed')); return; }
   const sortBy = document.getElementById('auto-sort-mode').value;
   const d = await api('/api/auto', {sort_by: sortBy});
   if(d.ok){
     cfg = d.config;
     renderAll();
-    const sortLabels = {
-      'rank,power':     'Rank → Power',
-      'rank,hq,power':  'Rank → HQ → Power',
-      'hq,power':       'HQ → Power',
-      'power':          'Power only',
-      'hq':             'HQ Level only',
-      'rank,hq':        'Rank → HQ',
-    };
-    toast(`⚡ Placed ${d.placed} member${d.placed===1?'':'s'} — ${sortLabels[sortBy]||sortBy}`);
+    toast(t(d.placed===1 ? 't_placed_one' : 't_placed_many', {n:d.placed, sort:sortLabel(sortBy)}));
   } else {
-    toast(d.error || 'Auto-assign failed', true);
+    toast(d.error || t('t_auto_failed'), true);
   }
 };
 
 // ── Auto-sort dropdown: clear + re-assign on change ──────────────────────────────
 document.getElementById('auto-sort-mode').onchange = async () => {
   const sortBy = document.getElementById('auto-sort-mode').value;
-  const sortLabels = {
-    'rank,power':     'Rank → Power',
-    'rank,hq,power':  'Rank → HQ → Power',
-    'hq,power':       'HQ → Power',
-    'power':          'Power only',
-    'hq':             'HQ Level only',
-    'rank,hq':        'Rank → HQ',
-  };
   // Clear grid first
   const clr = await api('/api/clear', {mode: 'assignments'});
-  if(!clr.ok){ toast('Clear failed', true); return; }
+  if(!clr.ok){ toast(t('t_clear_failed'), true); return; }
   cfg = clr.config;
   renderAll();
   // Then auto-assign with new sort order
@@ -1257,9 +1707,9 @@ document.getElementById('auto-sort-mode').onchange = async () => {
   if(d.ok){
     cfg = d.config;
     renderAll();
-    toast(`⚡ Re-arranged — ${sortLabels[sortBy]||sortBy}`);
+    toast(t('t_rearranged', {sort: sortLabel(sortBy)}));
   } else {
-    toast(d.error || 'Auto-assign failed', true);
+    toast(d.error || t('t_auto_failed'), true);
   }
 };
 
@@ -1275,9 +1725,9 @@ document.getElementById('csv-file-input').onchange = async (e) => {
   if(d.ok){
     cfg = d.config;
     renderAll();
-    toast(`📂 CSV imported — ${d.added} added, ${d.updated} updated`);
+    toast(t('t_csv_imported', {added:d.added, updated:d.updated}));
   } else {
-    toast(d.error || 'CSV upload failed', true);
+    toast(d.error || t('t_csv_failed'), true);
   }
   e.target.value = '';   // reset so same file can be re-uploaded
 };
@@ -1294,42 +1744,42 @@ document.getElementById('btn-mg-cancel').onclick = () => {
 document.getElementById('btn-mg-save').onclick = async () => {
   const x = parseInt(document.getElementById('mg-x').value);
   const y = parseInt(document.getElementById('mg-y').value);
-  if(isNaN(x) || isNaN(y)){ toast('X and Y must be numbers', true); return; }
+  if(isNaN(x) || isNaN(y)){ toast(t('t_xy_numbers'), true); return; }
   const d = await api('/api/set-mg', {x, y});
   if(d.ok){
     cfg = d.config;
     document.getElementById('mg-modal').style.display = 'none';
     renderAll();
-    toast(`📍 MG anchor set to (${x}, ${y})`);
+    toast(t('t_mg_set', {x, y}));
   } else {
-    toast(d.error || 'Failed to set MG', true);
+    toast(d.error || t('t_mg_failed'), true);
   }
 };
 
 // ── Clear Grid button (unassign all, keep members) ───────────────────────────────
 document.getElementById('btn-clear-grid').onclick = async () => {
-  if(!confirm('Unassign everyone from the grid? Member data is kept — just removes all placements.')) return;
+  if(!confirm(t('conf_clear_grid'))) return;
   const d = await api('/api/clear', {mode: 'assignments'});
   if(d.ok){
     cfg = d.config;
     renderAll();
-    toast('🗑 Grid cleared — all members unassigned');
+    toast(t('t_grid_cleared'));
   } else {
-    toast(d.error || 'Clear failed', true);
+    toast(d.error || t('t_clear_failed'), true);
   }
 };
 
 // ── Reset All button (wipe everything) ──────────────────────────────────────────
 document.getElementById('btn-clear-all').onclick = async () => {
-  if(!confirm('⚠️ This will delete ALL members and placements. Are you sure?')) return;
-  if(!confirm('Really? This cannot be undone.')) return;
+  if(!confirm(t('conf_reset_1'))) return;
+  if(!confirm(t('conf_reset_2'))) return;
   const d = await api('/api/clear', {mode: 'all'});
   if(d.ok){
     cfg = d.config;
     renderAll();
-    toast('💥 Everything cleared — fresh start');
+    toast(t('t_reset'));
   } else {
-    toast(d.error || 'Reset failed', true);
+    toast(d.error || t('t_reset_failed'), true);
   }
 };
 
@@ -1337,35 +1787,41 @@ document.getElementById('btn-clear-all').onclick = async () => {
 const allianceInput = document.getElementById('alliance-name-input');
 allianceInput.addEventListener('blur', async () => {
   const d = await api('/api/set-name', {alliance_name: allianceInput.value.trim()});
-  if(d.ok){ cfg = d.config; renderMeta(); toast('Alliance name saved ✓'); }
+  if(d.ok){ cfg = d.config; renderMeta(); toast(t('t_name_saved')); }
 });
 allianceInput.addEventListener('keydown', e => { if(e.key==='Enter') allianceInput.blur(); });
 
 // ── Watermark / unlock state ──────────────────────────────────────────────────────
 function renderUnlockState(){
   const bar = document.getElementById('watermark-bar');
-  const msg = document.getElementById('wm-msg');
   if(cfg.unlocked){
     bar.className = 'watermark-bar unlocked';
-    bar.innerHTML = '✅ <strong style="color:#224422">Full version unlocked</strong> &nbsp;·&nbsp; Alliance Hive Grid Tool';
-    document.getElementById('unlock-status').innerHTML = '<div class="unlock-badge">✅ Unlocked</div>';
+    bar.innerHTML = t('wm_unlocked');
+    document.getElementById('unlock-status').innerHTML = `<div class="unlock-badge">${t('unlock_badge')}</div>`;
   } else {
     bar.className = 'watermark-bar';
-    bar.innerHTML = `🔓 <strong style="color:#4444aa">Alliance Hive Grid Tool</strong> &nbsp;·&nbsp; Free version — <a href="#tip-section">unlock full features for $10 one-time →</a>`;
+    bar.innerHTML = t('wm_free');
+  }
+  // Keep the Stripe checkout URL in sync with current language so the webhook
+  // can route the localized license email.
+  const buy = document.getElementById('btn-unlock-buy');
+  if(buy){
+    const base = buy.href.split('?')[0];
+    buy.href = base + '?client_reference_id=' + LANG;
   }
 }
 
 // ── Unlock key ───────────────────────────────────────────────────────────────────
 document.getElementById('btn-unlock-key').onclick = async () => {
   const key = document.getElementById('unlock-key-input').value.trim();
-  if(!key){ toast('Enter your unlock key first', true); return; }
+  if(!key){ toast(t('t_enter_key'), true); return; }
   const d = await api('/api/unlock', {key});
   if(d.ok){
     cfg = d.config;
     renderUnlockState();
-    toast('🎉 Unlocked! Full version active.');
+    toast(t('t_unlocked'));
   } else {
-    toast(d.error || 'Invalid key', true);
+    toast(d.error || t('t_invalid_key'), true);
   }
 };
 
@@ -1393,7 +1849,7 @@ document.getElementById('btn-dl-template').addEventListener('click', e => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href=url; a.download='hive_roster.csv'; a.click();
   setTimeout(()=>URL.revokeObjectURL(url), 2000);
-  toast('📋 Roster downloaded as CSV');
+  toast(t('t_csv_downloaded'));
 });
 
 // ── Sort buttons ────────────────────────────────────────────────────────────────
@@ -1429,7 +1885,7 @@ function exportPNG(){
   // Title
   const allianceName = (cfg.alliance_name || '').trim();
   ctx.fillStyle='#ffffff'; ctx.font='bold 17px "Courier New",monospace';
-  ctx.fillText('◈  LAST WAR SURVIVAL — ALLIANCE HIVE GRID  ◈', PAD, PAD+20);
+  ctx.fillText(t('png_title'), PAD, PAD+20);
   if(allianceName){
     ctx.fillStyle='#ffdd88'; ctx.font='bold 14px "Courier New",monospace';
     ctx.fillText(`[ ${allianceName} ]`, PAD, PAD+42);
@@ -1437,7 +1893,8 @@ function exportPNG(){
   ctx.fillStyle='#55557a'; ctx.font='10px "Courier New",monospace';
   const placed = Object.keys(cfg.assignments).length;
   const subtitleY = allianceName ? PAD+58 : PAD+38;
-  ctx.fillText(`MG @ (${cfg.mg.x},${cfg.mg.y})  ·  ${placed} members placed  ·  exported ${new Date().toLocaleDateString()}`, PAD, subtitleY);
+  const dateLocale = LANG === 'ko' ? 'ko-KR' : undefined;
+  ctx.fillText(t('png_subtitle', {x:cfg.mg.x, y:cfg.mg.y, placed, date:new Date().toLocaleDateString(dateLocale)}), PAD, subtitleY);
 
   // Draw each cell
   for(let row=0; row<rows; row++){
@@ -1459,9 +1916,9 @@ function exportPNG(){
       ctx.textAlign='center';
       if(isMG){
         ctx.fillStyle='#ff5555';
-        ctx.font='bold 13px "Courier New",monospace'; ctx.fillText('★  MG  ★', cx+CW/2, cy+CH/2-8);
+        ctx.font='bold 13px "Courier New",monospace'; ctx.fillText(t('png_mg'), cx+CW/2, cy+CH/2-8);
         ctx.font='9px "Courier New",monospace';       ctx.fillText(`(${gx},${gy})`, cx+CW/2, cy+CH/2+8);
-        ctx.fillText("Marshall's Guard",               cx+CW/2, cy+CH/2+22);
+        ctx.fillText(t('png_mg_sub'),                  cx+CW/2, cy+CH/2+22);
       } else if(name){
         const m=cfg.members[name]||{}, rk=m.rank||'', c=RC[rk]||RC[''];
         const tag=`(${rk||'?'},${m.hq??'—'},${m.power||'—'})`;
@@ -1488,7 +1945,7 @@ function exportPNG(){
 
   // Legend
   const ly = PAD+HEAD+rows*CH+14;
-  const LEGEND = [['R5','Leader'],['R4','R4'],['R3','R3'],['R2','R2'],['R1','R1'],['MG','Marshall Guard']];
+  const LEGEND = [['R5',t('lg_leader')],['R4',t('lg_r4')],['R3',t('lg_r3')],['R2',t('lg_r2')],['R1',t('lg_r1')],['MG',t('lg_mg')]];
   ctx.font='9.5px "Courier New",monospace';
   let lx=PAD;
   for(const [r,label] of LEGEND){
@@ -1499,7 +1956,7 @@ function exportPNG(){
   }
   ctx.fillStyle='#2a2a44'; ctx.textAlign='right';
   ctx.font='8px "Courier New",monospace';
-  ctx.fillText('Alliance Hive Grid Tool', W-PAD, PAD+HEAD+rows*CH+FOOT+PAD-8);
+  ctx.fillText(t('png_credit'), W-PAD, PAD+HEAD+rows*CH+FOOT+PAD-8);
   ctx.textAlign='left';
 
   // Watermark if not unlocked
@@ -1510,11 +1967,11 @@ function exportPNG(){
     ctx.font = 'bold 38px "Courier New",monospace';
     ctx.textAlign = 'center';
     for(let wy=120; wy < H-40; wy+=180){
-      ctx.fillText('hivegrid.io', W/2, wy);
+      ctx.fillText(t('png_watermark'), W/2, wy);
     }
     ctx.restore();
     ctx.fillStyle='#22224a'; ctx.font='9px "Courier New",monospace'; ctx.textAlign='right';
-    ctx.fillText('Free version · hivegrid.io · Unlock at $10 one-time', W-PAD, H-6);
+    ctx.fillText(t('png_free_footer'), W-PAD, H-6);
     ctx.textAlign='left';
   }
 
@@ -1524,7 +1981,7 @@ function exportPNG(){
     a.href=url; a.download=`hive_grid_${new Date().toISOString().slice(0,10)}.png`;
     a.click(); setTimeout(()=>URL.revokeObjectURL(url),2000);
   },'image/png');
-  toast('📸 PNG exported — ready for Discord!');
+  toast(t('t_png_exported'));
 }
 
 document.getElementById('btn-export-png').onclick = exportPNG;
@@ -1535,7 +1992,7 @@ document.getElementById('btn-fb-submit').onclick = async () => {
   const comment = document.getElementById('fb-comment').value.trim();
   const votes   = [...document.querySelectorAll('.fb-checks input[type=checkbox]:checked')].map(el => el.value);
   if(!name && !comment && votes.length === 0){
-    toast('Add your name, vote for a feature, or write a comment first.', true);
+    toast(t('t_fb_empty'), true);
     return;
   }
   const d = await api('/api/feedback', {name, votes, comment});
@@ -1546,11 +2003,19 @@ document.getElementById('btn-fb-submit').onclick = async () => {
     document.querySelectorAll('.fb-checks input[type=checkbox]').forEach(el => el.checked = false);
     setTimeout(() => document.getElementById('fb-thanks').style.display = 'none', 5000);
   } else {
-    toast('Could not save feedback — please try again.', true);
+    toast(t('t_fb_failed'), true);
   }
 };
 
 // ── Init ───────────────────────────────────────────────────────────────────────
+// ── Language toggle wiring ──────────────────────────────────────────────────────
+document.getElementById('lang-toggle').addEventListener('click', () => {
+  setLang(LANG === 'en' ? 'ko' : 'en');
+});
+
+// Apply translations on first paint (before /api/config returns)
+applyI18n();
+
 (async function init(){
   try {
     cfg = await fetch('/api/config').then(r=>r.json());
@@ -1559,9 +2024,9 @@ document.getElementById('btn-fb-submit').onclick = async () => {
   } catch(e) {
     document.body.innerHTML = `
       <div style="padding:60px;color:#ff6666;font-family:monospace">
-        <h2>⚠ Cannot connect to server</h2>
+        <h2>${t('err_no_server_h')}</h2>
         <p style="margin-top:12px;color:#aa8888">
-          Make sure you started the server first:<br><br>
+          ${t('err_no_server_p')}<br><br>
           <code style="background:#1a0000;padding:6px 12px;border-radius:4px">
             python3 ~/claudecode/hive_server.py
           </code>

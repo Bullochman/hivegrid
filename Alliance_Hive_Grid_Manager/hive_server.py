@@ -271,7 +271,66 @@ def _verify_stripe_signature(raw_body: bytes, sig_header: str, secret: str) -> b
     except Exception:
         return False
 
-def send_key_email(to_email: str, key: str) -> None:
+LICENSE_EMAIL = {
+    "en": {
+        "subject": "Your Alliance Hive Grid License Key",
+        "body": (
+            "Thank you for your purchase!\n\n"
+            "Your license key is:\n\n"
+            "    {key}\n\n"
+            "To activate:\n"
+            "  1. Open the Alliance Hive Grid tool\n"
+            "  2. Click 'Unlock Full Version'\n"
+            "  3. Paste the key above and click Unlock\n\n"
+            "Tool URL: https://web-production-46ee1.up.railway.app\n\n"
+            "Questions? Reply to this email.\n"
+        ),
+    },
+    "ko": {
+        "subject": "연맹 벌집 배치도 라이선스 키",
+        "body": (
+            "결제 감사합니다!\n\n"
+            "라이선스 키:\n\n"
+            "    {key}\n\n"
+            "활성화 방법:\n"
+            "  1. 연맹 벌집 배치도 사이트 열기\n"
+            "  2. '정식 버전 잠금해제' 클릭\n"
+            "  3. 위 키를 붙여넣고 잠금해제 클릭\n\n"
+            "사이트 URL: https://web-production-46ee1.up.railway.app\n\n"
+            "문의사항은 이 이메일에 답장해 주세요.\n"
+        ),
+    },
+}
+
+# Errors returned in JSON responses — sent to the client, so we localize.
+ERROR_MSGS = {
+    "en": {
+        "invalid_move":      "Invalid move",
+        "into_center":       "Cannot move into {label}",
+        "name_required":     "Name required",
+        "cell_is_center":    "That cell is part of the {label}",
+        "invalid_key":       "Invalid key",
+        "xy_int":            "x and y must be integers",
+        "unknown_layout":    "Unknown layout: {mode}",
+    },
+    "ko": {
+        "invalid_move":      "잘못된 이동",
+        "into_center":       "{label} 안으로 이동할 수 없습니다",
+        "name_required":     "이름이 필요합니다",
+        "cell_is_center":    "이 셀은 {label}의 일부입니다",
+        "invalid_key":       "유효하지 않은 키",
+        "xy_int":            "x와 y는 정수여야 합니다",
+        "unknown_layout":    "알 수 없는 배치: {mode}",
+    },
+}
+
+# Central-block labels get their own translations (they surface inside error messages).
+CENTER_LABEL = {
+    "mg":         {"en": "Marshall's Guard", "ko": "원수 근위대"},
+    "stronghold": {"en": "Military Stronghold", "ko": "군사 요새"},
+}
+
+def send_key_email(to_email: str, key: str, lang: str = "en") -> None:
     host  = os.environ.get("SMTP_HOST", "")
     port  = int(os.environ.get("SMTP_PORT", 587))
     user  = os.environ.get("SMTP_USER", "")
@@ -280,26 +339,29 @@ def send_key_email(to_email: str, key: str) -> None:
     if not (host and user and pw):
         print("[email] Warning: SMTP env vars not set — skipping email delivery")
         return
+    if lang not in LICENSE_EMAIL:
+        lang = "en"
     try:
-        subject = "Your Alliance Hive Grid License Key"
-        body = (
-            f"Thank you for your purchase!\n\n"
-            f"Your license key is:\n\n"
-            f"    {key}\n\n"
-            f"To activate:\n"
-            f"  1. Open the Alliance Hive Grid tool\n"
-            f"  2. Click 'Unlock Full Version'\n"
-            f"  3. Paste the key above and click Unlock\n\n"
-            f"Tool URL: https://web-production-46ee1.up.railway.app\n\n"
-            f"Questions? Reply to this email.\n"
+        subject = LICENSE_EMAIL[lang]["subject"]
+        body    = LICENSE_EMAIL[lang]["body"].format(key=key)
+        # RFC 2047 encode subject so non-ASCII (Korean) doesn't break headers
+        from email.header import Header
+        encoded_subject = Header(subject, "utf-8").encode()
+        msg = (
+            f"From: {frm}\r\n"
+            f"To: {to_email}\r\n"
+            f"Subject: {encoded_subject}\r\n"
+            f"MIME-Version: 1.0\r\n"
+            f"Content-Type: text/plain; charset=utf-8\r\n"
+            f"Content-Transfer-Encoding: 8bit\r\n\r\n"
+            f"{body}"
         )
-        msg = f"From: {frm}\r\nTo: {to_email}\r\nSubject: {subject}\r\n\r\n{body}"
         context = ssl.create_default_context()
         with smtplib.SMTP(host, port, timeout=10) as smtp:
             smtp.starttls(context=context)
             smtp.login(user, pw)
             smtp.sendmail(frm, to_email, msg.encode("utf-8"))
-        print(f"[email] Sent key {key} to {to_email}")
+        print(f"[email] Sent {lang} key {key} to {to_email}")
     except Exception as e:
         print(f"[email] Error sending to {to_email}: {e}")
 
@@ -309,9 +371,9 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, *_): pass   # silence access log
 
     def _send_json(self, data, status=200):
-        body = json.dumps(data).encode()
+        body = json.dumps(data, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
-        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", len(body))
         self.end_headers()
         self.wfile.write(body)
@@ -319,6 +381,20 @@ class Handler(BaseHTTPRequestHandler):
     def _read_json(self):
         length = int(self.headers.get("Content-Length", 0))
         return json.loads(self.rfile.read(length)) if length else {}
+
+    def _lang(self):
+        """Pick the client's UI language for error strings.
+        The frontend sends X-Hive-Lang; fall back to Accept-Language."""
+        hl = (self.headers.get("X-Hive-Lang") or "").lower().strip()
+        if hl in ERROR_MSGS:
+            return hl
+        al = (self.headers.get("Accept-Language") or "").lower()
+        return "ko" if al.startswith("ko") else "en"
+
+    def _err(self, key, **fmt):
+        lang = self._lang()
+        msg = ERROR_MSGS[lang].get(key, ERROR_MSGS["en"][key])
+        return msg.format(**fmt) if fmt else msg
 
     def do_OPTIONS(self):
         self.send_response(200)
@@ -356,11 +432,15 @@ class Handler(BaseHTTPRequestHandler):
                 (obj.get("customer_details") or {}).get("email")
                 or obj.get("customer_email")
             )
+            # Language routing: the frontend appends ?client_reference_id=<lang>
+            # to the Stripe checkout URL, which Stripe passes through unchanged.
+            client_ref = (obj.get("client_reference_id") or "").lower().strip()
+            lang = client_ref if client_ref in ("en", "ko") else "en"
             key = generate_key()
             save_key(key)
-            print(f"[webhook] Generated key {key} for order")
+            print(f"[webhook] Generated {lang} key {key} for order")
             if email:
-                send_key_email(email, key)
+                send_key_email(email, key, lang=lang)
             else:
                 print("[webhook] Warning: no email found in checkout session")
 
@@ -411,18 +491,20 @@ class Handler(BaseHTTPRequestHandler):
         cfg  = load_cfg()
         g    = cfg["grid"]
         mc, mr = g["mg_col"], g["mg_row"]
-        center_label = cfg["layout"]["short"]
+        mode = cfg["layout"]["mode"]
+        # Localized central-block label (fall back to the English preset short name)
+        center_label = CENTER_LABEL.get(mode, {}).get(self._lang(), cfg["layout"]["short"])
 
         # ── /api/move  {from: "col,row", to: "col,row"} ──────────────────────
         if self.path == "/api/move":
             src = data.get("from", "")
             dst = data.get("to", "")
             if not src or not dst or src == dst:
-                self._send_json({"ok": False, "error": "Invalid move"}); return
+                self._send_json({"ok": False, "error": self._err("invalid_move")}); return
             sc, sr = map(int, src.split(","))
             dc, dr = map(int, dst.split(","))
             if _is_center(cfg, sc, sr) or _is_center(cfg, dc, dr):
-                self._send_json({"ok": False, "error": f"Cannot move into {center_label}"}); return
+                self._send_json({"ok": False, "error": self._err("into_center", label=center_label)}); return
             name_src = cfg["assignments"].pop(src, None)
             name_dst = cfg["assignments"].pop(dst, None)
             if name_src: cfg["assignments"][dst] = name_src
@@ -436,9 +518,9 @@ class Handler(BaseHTTPRequestHandler):
             col  = int(data.get("col", 0))
             row  = int(data.get("row", 0))
             if not name:
-                self._send_json({"ok": False, "error": "Name required"}); return
+                self._send_json({"ok": False, "error": self._err("name_required")}); return
             if _is_center(cfg, col, row):
-                self._send_json({"ok": False, "error": f"That cell is part of the {center_label}"}); return
+                self._send_json({"ok": False, "error": self._err("cell_is_center", label=center_label)}); return
             # remove from old position
             for k, v in list(cfg["assignments"].items()):
                 if v == name: del cfg["assignments"][k]; break
@@ -460,7 +542,7 @@ class Handler(BaseHTTPRequestHandler):
             except: hq = None
 
             if not new:
-                self._send_json({"ok": False, "error": "Name required"}); return
+                self._send_json({"ok": False, "error": self._err("name_required")}); return
 
             # find current grid position of old member
             pos_key = next((k for k, v in cfg["assignments"].items() if v == old), None)
@@ -513,7 +595,7 @@ class Handler(BaseHTTPRequestHandler):
                 save_cfg(cfg)
                 self._send_json({"ok": True, "config": cfg})
             else:
-                self._send_json({"ok": False, "error": "Invalid key"})
+                self._send_json({"ok": False, "error": self._err("invalid_key")})
 
         # ── /api/set-mg  {x, y} — move the MG anchor point ──────────────────
         elif self.path == "/api/set-mg":
@@ -521,7 +603,7 @@ class Handler(BaseHTTPRequestHandler):
                 new_x = int(data.get("x", cfg["mg"]["x"]))
                 new_y = int(data.get("y", cfg["mg"]["y"]))
             except (ValueError, TypeError):
-                self._send_json({"ok": False, "error": "x and y must be integers"}); return
+                self._send_json({"ok": False, "error": self._err("xy_int")}); return
             cfg["mg"]["x"] = new_x
             cfg["mg"]["y"] = new_y
             save_cfg(cfg)
@@ -598,7 +680,7 @@ class Handler(BaseHTTPRequestHandler):
         elif self.path == "/api/set-layout":
             mode = (data.get("mode") or "").strip().lower()
             if mode not in LAYOUT_PRESETS:
-                self._send_json({"ok": False, "error": f"Unknown layout: {mode}"}); return
+                self._send_json({"ok": False, "error": self._err("unknown_layout", mode=mode)}); return
             preset = LAYOUT_PRESETS[mode]
             prev_mode = cfg.get("layout", {}).get("mode", "mg")
             cfg["layout"] = {"mode": mode}
