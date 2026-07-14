@@ -22,8 +22,63 @@ APP_HTML   = DIR / "hive_app.html"
 EXPORT_CSV = DIR / "hive_members_export.csv"
 FEEDBACK   = DIR / "feedback.json"
 KEYS_FILE  = DIR / "keys.json"
+STATS_FILE = DIR / "stats.json"
 PORT       = int(os.environ.get("PORT", 8765))
 IS_HOSTED  = os.environ.get("RAILWAY_ENVIRONMENT") is not None
+
+# Intentional demo key for Evan's Korean alliance — shared publicly with the
+# alliance so they can unlock the tool for free. This is a deliberate gift,
+# NOT a leaked developer key. Rotate this value if you ever stop wanting the
+# freebie to be public. Rename via HIVE_DEMO_KEY env var without changing code.
+KR_ALLIANCE_KEY = "HIVE-KR-ALLIANCE-2026"
+
+# ── Access analytics ────────────────────────────────────────────────────────────
+# Lightweight visit tracker — bucketed by day, keeps last 30 days in a JSON file.
+# Not privacy-invasive: only stores a per-IP hash + first-see date + language
+# preference. Enough to answer "how many people from KR loaded this today?"
+_stats_cache = None
+def _load_stats():
+    global _stats_cache
+    if _stats_cache is not None:
+        return _stats_cache
+    try:
+        with open(STATS_FILE) as f:
+            _stats_cache = json.load(f)
+    except Exception:
+        _stats_cache = {"days": {}, "total_loads": 0}
+    return _stats_cache
+
+def _save_stats():
+    if _stats_cache is None:
+        return
+    try:
+        with open(STATS_FILE, "w") as f:
+            json.dump(_stats_cache, f, indent=2)
+    except Exception as e:
+        print(f"[stats] Save failed: {e}")
+
+def _record_visit(ip: str, lang: str, accept_lang: str = ""):
+    """Record a page load. Hashes the IP for privacy."""
+    s = _load_stats()
+    from datetime import datetime, timezone
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    day = s["days"].setdefault(today, {"loads": 0, "unique_ips": [], "langs": {}, "accept_langs": {}})
+    day["loads"] += 1
+    ip_hash = hashlib.sha256(ip.encode()).hexdigest()[:12]
+    if ip_hash not in day["unique_ips"]:
+        day["unique_ips"].append(ip_hash)
+    day["langs"][lang] = day["langs"].get(lang, 0) + 1
+    if accept_lang:
+        # Bucket by primary language tag (e.g. ko-KR → ko)
+        primary = accept_lang.split(",")[0].split("-")[0].lower().strip()
+        if primary:
+            day["accept_langs"][primary] = day["accept_langs"].get(primary, 0) + 1
+    s["total_loads"] += 1
+    # Trim to last 30 days
+    if len(s["days"]) > 30:
+        for k in sorted(s["days"].keys())[:-30]:
+            del s["days"][k]
+    _save_stats()
 
 # Auto-create config from example if missing (first run on hosted server)
 if not CONFIG.exists():
@@ -368,7 +423,21 @@ def send_key_email(to_email: str, key: str, lang: str = "en") -> None:
 
 # ── HTTP Handler ───────────────────────────────────────────────────────────────
 class Handler(BaseHTTPRequestHandler):
-    def log_message(self, *_): pass   # silence access log
+    def log_message(self, fmt, *args):
+        # Log every request so Railway logs show real traffic — but skip
+        # noisy repeats from health checks / bots.
+        msg = fmt % args
+        if "GET /favicon.ico" in msg or "HEAD /" in msg:
+            return
+        ip = self._client_ip()
+        print(f"[req] {ip} — {msg}")
+
+    def _client_ip(self):
+        """Get the real client IP — Railway/proxies inject X-Forwarded-For."""
+        xff = self.headers.get("X-Forwarded-For", "")
+        if xff:
+            return xff.split(",")[0].strip()
+        return self.client_address[0] if self.client_address else "?"
 
     def _send_json(self, data, status=200):
         body = json.dumps(data, ensure_ascii=False).encode("utf-8")
@@ -455,9 +524,35 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", len(data))
             self.end_headers()
             self.wfile.write(data)
+            # Record page load for analytics (only actual page loads, not asset fetches)
+            try:
+                _record_visit(
+                    self._client_ip(),
+                    self._lang(),
+                    self.headers.get("Accept-Language", ""),
+                )
+            except Exception as e:
+                print(f"[stats] Failed to record visit: {e}")
 
         elif self.path == "/api/config":
             self._send_json(load_cfg())
+
+        elif self.path == "/api/stats":
+            # Public-safe analytics endpoint — shows aggregate counts, no raw IPs.
+            s = _load_stats()
+            days_out = {}
+            for date, d in sorted(s["days"].items(), reverse=True):
+                days_out[date] = {
+                    "loads":        d["loads"],
+                    "unique_ips":   len(d["unique_ips"]),
+                    "langs":        d["langs"],
+                    "accept_langs": d["accept_langs"],
+                }
+            self._send_json({
+                "ok":          True,
+                "total_loads": s["total_loads"],
+                "days":        days_out,
+            })
 
         elif self.path == "/api/stronghold-slots":
             slots = stronghold_slot_list()
@@ -589,9 +684,10 @@ class Handler(BaseHTTPRequestHandler):
         elif self.path == "/api/unlock":
             key = (data.get("key") or "").strip().upper()
             valid_keys = load_keys()
-            # Admin escape hatch: env var lets you set a private demo key without
-            # exposing it in source. Set HIVE_DEMO_KEY on the Railway service to
-            # enable a working key without going through Stripe.
+            # KR alliance demo key — intentional public share (see top of file).
+            valid_keys.add(KR_ALLIANCE_KEY)
+            # Admin escape hatch: env var for a second, non-source-controlled key
+            # you can rotate on Railway without redeploying.
             demo = (os.environ.get("HIVE_DEMO_KEY") or "").strip().upper()
             if demo:
                 valid_keys.add(demo)
